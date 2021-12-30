@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="circles.css">
+    <!-- <script src="main.js"></script> -->
+    <script src="./WardenNew/new_launcher_universal.js"></script>
+    <meta charset="UTF-8">
+    <title>Warden</title>
+  </head>
+  <body>
+    <div class="area" >
+        <ul class="circles">
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+        </ul>
+    </div >
+
+
+    <script>
+      function showToast(text){
+        var isShowing = false;
+        var x=document.getElementById("toast");
+        if(isShowing == false) {
+          x.classList.add("show");
+          var isShowing = true;
+          x.innerHTML=text;
+          setTimeout(function(){
+            x.classList.remove("show");
+            var isShowing = false;
+        },3000);
+        }
+      }
+    </script>
+        <script>
+            /**
+             * The code can be included in some JS file and included
+             * via require or <script> in the renderer process
+             */
+
+            // function MoLP() {
+            //   let Data = {
+            //     username: document.getElementById("usernameInput").value,
+            //     password: document.getElementById("passwordInput").value
+            //   };
+            //   ipcRenderer.send('request-mojang-login-action', Data);
+            // }
+
+            // function MiLP() {
+            //   ipcRenderer.send('request-microsoft-login-action');
+            // }
+
+        </script>
+
+  <center>
+    <h1>Warden</h1>
+    <h2>A simple and modern Minecraft client.</h2>
+    <br>
+
+    <div class="input-box">
+        <input type="text" name="" id="usernameInput" required />
+        <label for="">Username</label>
+    </div>
+    <div class="input-box">
+        <input type="password" id="passwordInput" name="" required />
+        <label for="">Password</label>
+    </div>
+    <br>
+    <div class="container">
+      <div class="button" id="mojanglogin" onclick="showToast('Logging into Mojang account'); startMoLP();">Login</div>
+    </div>
+    <div class="container">
+        <div class="button" id="microsoftlogin" onclick="showToast('Launching Microsoft login portal'); startMiLP();">Microsoft Account</div>
+    </div>
+    <h4 style="position:absolute; bottom: 10px; margin-left: auto; margin-right: auto; left: 0; right: 0;">Closed beta v0.1.0</h4>
+    <div id="toast"></div>
+    </center>
+  </div>
+</html>

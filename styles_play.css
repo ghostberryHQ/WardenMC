@@ -1,0 +1,154 @@
+/* side menu */
+.wui-side-menu {
+    position:fixed;
+    top:0;
+    left:0;
+    width:220px;
+    height:100%;
+    backface-visibility:hidden;
+    z-index:3;
+    -webkit-transform: translateX(-100%);
+    transform: translateX(-100%);  
+    -webkit-transition: webkit-transform 220ms ease-in-out;
+    transition: transform 220ms ease-in-out;
+  }
+  .wui-side-menu.open {-webkit-transform: translateX(0);transform: translateX(0);} 
+  .wui-side-menu.open {box-shadow: 2px 0 16px 0 rgba(0,0,0,0.3);}
+  .wui-side-menu .wui-side-menu-items {overflow-y:auto;height: calc(100% - 50px);}
+  .wui-side-menu .wui-side-menu-item {
+     display:block;
+     width:100%;
+     padding:15px 12px ;
+     border-left:5px solid transparent;
+  }
+  .wui-side-menu .wui-side-menu-item {height:50px}
+  
+  /* overlay */
+  .wui-overlay {position:absolute;top:0;left:0;right:0;bottom:0;z-index:2;background-color: rgba(0, 0, 0, 0.1);opacity:0.5;display:none;}
+  .wui-side-menu.open ~ .wui-overlay, .wui-overlay.active {display:block;} 
+  
+  /* content */
+  .wui-content {z-index:1;position:absolute;top:0;right:0;bottom:0;left:0;
+               -webkit-transition:all 0.22s ease-out;-moz-transition:all 0.22s ease-out;
+               -o-transition:all 0.22s ease-out;transition:all 0.22s ease-out;padding:0 10px;}
+  .wui-content .wui-side-menu-trigger {margin-left:-10px;}
+  @media only screen and (min-width:768px){
+      .wui-side-menu .wui-side-menu-pin-trigger {display:inline-block;} 
+      .wui-side-menu.open {box-shadow: initial;}
+      .wui-side-menu.open ~ .wui-overlay {display:none;} 
+      .wui-side-menu.open ~ .wui-content .wui-side-menu-trigger {display:none;} 
+      .wui-side-menu.open:not(.pinned) ~ .wui-overlay {display:block;}
+      .wui-side-menu.open:not(.pinned) {box-shadow: 2px 0 16px 0 rgba(0,0,0,0.3);}
+      .wui-side-menu.open.pinned ~ .wui-content {left:220px;}
+  }
+  ul.wui-side-menu-items {list-style: none;padding:0}
+  
+  .wui-side-menu {background-color: #0d0d0d;color:#ddd;}
+  .wui-side-menu .wui-side-menu-trigger:hover,
+  .wui-side-menu-item:hover,
+  .wui-side-menu-pin-trigger:hover
+      {color: #fff;background-color: #383f45;}
+  
+  .wui-side-menu a 
+   {color:#ccc;text-decoration:none}
+  .wui-side-menu .wui-side-menu-item.active
+      {border-left-color: #158439; color:#158439}
+  .wui-content a {color:#000;}
+  
+  
+  /* demo */
+  body {
+      margin:0; font-family:'Rubik', sans-serif; font-weight:100; background-color:#1F1F1F;
+    }
+  *, *:after, *:before {
+      -webkit-box-sizing: border-box;-moz-box-sizing: border-box;box-sizing: border-box;
+    }
+  #events {
+      background-color:#ccc;
+    }
+    h1, h2, h3, h4, div {
+        color: white;
+    }
+
+    progress {
+      width: 50.2%;
+      position: absolute;
+      left: 25.7%;
+      bottom:0;
+    }
+
+    .box {
+      display: flex;
+      align-items:center;
+    }
+
+    .button {
+        flex: 1 1 auto;
+        margin: 10px;
+        padding: 20px;
+        width: 50%;
+        border: 2px solid #f7f7f7;
+        text-align: center;
+        text-transform: uppercase;
+        position: absolute;
+        overflow: hidden;
+        transition: 0.3s;
+        left: 25%;
+        bottom:0;
+      }
+      .button:after {
+        position: absolute;
+        transition: 0.3s;
+        content: '';
+        width: 0;
+        left: 50%;
+        bottom: 0;
+        height: 3px;
+        background: #f7f7f7;
+      }
+      .button:hover {
+        cursor: pointer;
+      }
+      .button:hover:after {
+        width: 100%;
+        left: 0;
+      }
+      .button:hover:nth-of-type(1) {
+        box-shadow: inset 0px 0px 0px 3px #f7f7f7;
+      }
+      .button:hover:nth-of-type(1):after {
+        width: 0%;
+      }
+
+
+
+      /* Toast Noti */
+
+#toast{
+    position:fixed;
+    top:0;
+    left:50%;
+    transform:translate(-50%);
+    background-color:#df4759;
+    background-color:#42ba96;
+    color:#fff;
+    padding:16px;
+    border-radius:4px;
+    text-align:center;
+    z-index:1;
+    box-shadow:0 0 20px rgba(0,0,0,0.3);
+    visibility:hidden;
+    opacity:0;
+  }
+  
+  #toast.show{
+    visibility:visible;
+    animation:fadeInOut 3s;
+  }
+  
+  @keyframes fadeInOut{
+    5%,95%{opacity:1;top:50px}
+    15%,85%{opacity:1;top:30px}
+  }
+      
+  
