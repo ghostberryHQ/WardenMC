@@ -185,14 +185,19 @@ function modUpdateCheck() {
                         }
                     });
                     fs.readdir(minecraftDirectory + "/mods", (err, files) => {
-                        if(files.length == 25) {
-                            continueToStart();
+                        if(files.length == parsedUrlData.length) {
+                            merge();
                         }
                     });
                 }
             });
         }
     }
+}
+
+
+function merge() {
+    continueToStart();
 }
 
 function continueToStart() {

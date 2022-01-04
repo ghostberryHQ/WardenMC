@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="stylesheet" href="styles_merge.css">
+    <link rel="stylesheet" href="circles_play.css">
+    <script src="main.js"></script>
+    <meta charset="UTF-8">
+    <title>Warden</title>
+  </head>
+  <body>
+    <div class="area" >
+        <ul class="circles">
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+        </ul>
+    </div >
+<div class="wui-content">
+  <div class="wui-content-header">
+    <a href="#" class="wui-side-menu-trigger"><i class="fa fa-bars"></i></a>
+  </div> 
+  <div class="wui-content-main">
+    <center>
+      <h1>Warden has detected {CLIENT(s)} are installed.</h1>
+      <h2>Warden offers to transfer your old data over to Warden. Nothing will be deleted.</h2>
+      <div class="button" onclick="yes();"><b>Merge!</b></div>
+      <div class="button" onclick="no();"><b>Decline!</b></div>
+    </center>
+    <div id="events"></div>
+    <div id="toast"></div>
+  </div>
+</div>
+  </div>
+</html>

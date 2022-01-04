@@ -1,6 +1,6 @@
 {
   "name": "warden",
-  "version": "0.2.0-alpha.2",
+  "version": "0.2.0-alpha.3",
   "description": "A modern and simple Minecraft launcher",
   "main": "main.js",
   "author": "IAmThePerson",
