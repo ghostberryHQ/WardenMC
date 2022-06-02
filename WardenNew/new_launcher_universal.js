@@ -12,7 +12,7 @@ function startMoLP() {
 
 function startMiLP() {
     //msmc's testing enviroment sometimes runs into this issue that it can't load node fetch
-    msmc.setFetch(fetch)
+    //msmc.setFetch(fetch)
     msmc.fastLaunch("raw",
         (update) => {
             //A hook for catching loading bar events and errors, standard with MSMC

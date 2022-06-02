@@ -89,12 +89,12 @@
         width: 50%;
         border: 2px solid #f7f7f7;
         text-align: center;
+        left: 25%;
         text-transform: uppercase;
         position: absolute;
+        bottom:0;
         overflow: hidden;
         transition: 0.3s;
-        left: 25%;
-        bottom:0;
       }
       .button:after {
         position: absolute;
@@ -150,5 +150,70 @@
     5%,95%{opacity:1;top:50px}
     15%,85%{opacity:1;top:30px}
   }
-      
-  
+
+
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap');
+  .select {
+    position: absolute;
+    bottom:0;
+    margin-bottom:80px;
+    text-align: center;
+    left: 35%;
+  }
+  select {
+    color: white;
+  }
+  .select select {
+    -webkit-appearance: none;
+    background-color: transparent;
+    outline: 0;
+    border: 0;
+    display: block;
+    width: 100%;
+    padding: 0px 15px;
+    height: 3rem;
+    font-size: 1rem;
+    font-weight: 400;
+  }
+  .select select:focus + fieldset {
+    border: 2px solid #c5c5c7;
+  }
+  .select select:focus + fieldset legend {
+    margin: -1px 0px 0px -1px;
+  }
+  .select select:hover + fieldset {
+    border-color: #c5c5c7;
+  }
+  .select fieldset {
+    position: absolute;
+    border: 1px solid #e5e5e7;
+    border-radius: 5px;
+    z-index: -1;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0 10px;
+  }
+  .select legend {
+    font-size: 12px;
+    padding: 0 5px;
+    line-height: 0;
+    color: #757577;
+  }
+  .select svg {
+    position: absolute;
+    right: 5px;
+    top: 5px;
+    bottom: 0;
+    margin: auto;
+    height: 1.5rem;
+    width: 1.5rem;
+    fill: #757577;
+    pointer-events: none;
+  }
+  * {
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
+  }
