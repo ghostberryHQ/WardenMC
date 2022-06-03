@@ -63,6 +63,10 @@ ipcMain.on('startGame', (event, arg) => {
 
 });
 
+ipcMain.on('requestForAppData', (event, arg) => {
+  event.reply('requestForAppDataReply', process.env.APPDATA)
+})
+
 function signOut() {
   const data223 = fs.readFileSync(process.env.APPDATA + "/warden/auth/auth.json");
   const data333 = JSON.parse(data223);

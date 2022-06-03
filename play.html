@@ -137,11 +137,17 @@ function showToast(text){
     }
 
     function loadGame() {
+      var appdata;
       var mcVersion = document.getElementById("versionSelectID").value
+      ipcRenderer.sendSync('requestForAppData', 'please')
+      ipcRenderer.on('requestForAppDataReply', (event, arg) => {
+        console.log(arg) // prints "pong"
+        appdata = arg;
+      })
       ipcRenderer.send('startGame', { data: mcVersion });
       document.getElementById("progressInfoP").style.visibility = "visible";
       setInterval(function() {
-      readTextFile("C:/Users/Joey/AppData/Roaming/warden/progress.json", function(text){
+      readTextFile(appdata+"/warden/progress.json", function(text){
         var data = JSON.parse(text);
         document.getElementById("McProgress").max = data.total;
         document.getElementById("McProgress").value = data.task;
