@@ -139,7 +139,7 @@ function showToast(text){
     function loadGame() {
       var appdata;
       var mcVersion = document.getElementById("versionSelectID").value
-      ipcRenderer.sendSync('requestForAppData', 'please')
+      ipcRenderer.send('requestForAppData', 'please')
       ipcRenderer.on('requestForAppDataReply', (event, arg) => {
         console.log(arg) // prints "pong"
         appdata = arg;
