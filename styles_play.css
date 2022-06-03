@@ -163,6 +163,10 @@
   select {
     color: white;
   }
+  legend {
+    color: white;
+  }
+  select option { color: black; }
   .select select {
     -webkit-appearance: none;
     background-color: transparent;

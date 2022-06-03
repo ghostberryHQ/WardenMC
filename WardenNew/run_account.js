@@ -7,6 +7,7 @@ const fs = require('fs');
 const fetch = require('node-fetch');
 const curseforge = require("mc-curseforge-api");
 const {Modrinth} = require("modrinth")
+const fsExtra = require('fs-extra')
 var fabric_loader_version = "0.14.6"
 var quilt_loader_version;
 var forge_loader_version;
@@ -114,11 +115,9 @@ function modUpdateCheck() {
                     const tables = parsedWardenModConfigJSON.entries[minecraft_version];
                     fs.readdir(minecraftDirectory + "/mods", (err, files) => {
                         if(minecraft_version === "1.8.9" && files.length == parsedWardenModConfigJSON.entries["1.18.2"].length) {
-                            const fsExtra = require('fs-extra')
                             fsExtra.emptyDirSync(minecraftDirectory + "/mods")
                         }
                         if(minecraft_version === "1.18.2" && files.length == parsedWardenModConfigJSON.entries["1.8.9"].length) {
-                            const fsExtra = require('fs-extra')
                             fsExtra.emptyDirSync(minecraftDirectory + "/mods")
                         }
                     });
@@ -248,29 +247,35 @@ function modUpdateCheck() {
 
 
 function finalChecks() {
+    sleep(5000)
     console.log("made it here")
     if(forge_loader_version) {
-        if (!fs.existsSync(process.env.APPDATA + "/warden/forge/forge-"+minecraft_version+"-"+forge_loader_version+"-"+minecraft_version+"-universal.jar")){
-            const fileNN = "forge-"+minecraft_version+"-"+forge_loader_version+"-"+minecraft_version+"-universal.jar";
+
+        if(!fs.existsSync(process.env.APPDATA + "/warden/java/")) {
+            fs.mkdirSync(process.env.APPDATA + "/warden/java/");
+        }
+        if(!fs.existsSync(process.env.APPDATA + "/warden/java/legacy")) {
+            fs.mkdirSync(process.env.APPDATA + "/warden/java/legacy");
+        }
+
+        if(!fs.existsSync(process.env.APPDATA + "/warden/java/legacy/java.exe")) {
+            console.log("doesnt have")
             const downloader = new Downloader({
-                url: "https://maven.minecraftforge.net/net/minecraftforge/forge/"+minecraft_version+"-"+forge_loader_version+"-"+minecraft_version+"/forge-"+minecraft_version+"-"+forge_loader_version+"-"+minecraft_version+"-universal.jar",
-                directory: process.env.APPDATA + "/warden/forge",
-                fileName: fileNN, //This will be the file name.
+                url: "https://launcher.mojang.com/v1/objects/e69bffb8015f7f6d2593a357141a153208de53a0/java.exe",
+                directory: process.env.APPDATA + "/warden/java/legacy",
+                fileName: "java.exe", //This will be the file name.
                 onProgress: function (percentage, chunk, remainingSize) {
                     //Gets called with each chunk.
-                    console.log(fileNN+" | ", percentage + "%");
+                    console.log("java | ", percentage + "%");
                     obj = {
-                        type: "forge",
+                        type: "java",
                         task: percentage,
                         total: 100
                     }
                     fs.writeFileSync(process.env.APPDATA + "/warden/progress.json", JSON.stringify(obj));
-                    fs.readdir(process.env.APPDATA + "/warden/forge", (err, files) => {
-                        if(files.length == 1 && percentage == 100.00) {
-                            sleep(5000);
-                            continueToStart();
-                        }
-                    });
+                    if(percentage == 100.00) {
+                        modUpdateCheck();
+                    }
                 },
             });
             try {
@@ -279,9 +284,99 @@ function finalChecks() {
                 console.log(error);
             }
         } else {
-            continueToStart();
+            console.log("has")
+            setupForge()
         }
     } else if(quilt_loader_version) {
+
+    continueToStart();
+
+        if(!fs.existsSync(process.env.APPDATA + "/warden/java/")) {
+            fs.mkdirSync(process.env.APPDATA + "/warden/java/");
+        }
+        if(!fs.existsSync(process.env.APPDATA + "/warden/java/latest")) {
+            fs.mkdirSync(process.env.APPDATA + "/warden/java/latest");
+        }
+        if(!fs.existsSync(process.env.APPDATA + "/warden/java/bin")) {
+            fs.mkdirSync(process.env.APPDATA + "/warden/java/bin");
+        }
+        if(!fs.existsSync(process.env.APPDATA + "/warden/java/bin")) {
+            fs.mkdirSync(process.env.APPDATA + "/warden/java/bin");
+        }
+        if(!fs.existsSync(process.env.APPDATA + "/warden/java/bin/server")) {
+            fs.mkdirSync(process.env.APPDATA + "/warden/java/bin/server");
+        }
+        if(!fs.existsSync(process.env.APPDATA + "/warden/java/lib")) {
+            fs.mkdirSync(process.env.APPDATA + "/warden/java/lib");
+        }
+
+        // if(!fs.existsSync(process.env.APPDATA + "/warden/java/bin/java.exe") || !fs.existsSync(process.env.APPDATA + "/warden/java/bin/java.dll") || !fs.existsSync(process.env.APPDATA + "/warden/java/bin/jimage.dll") || !fs.existsSync(process.env.APPDATA + "/warden/java/bin/jli.dll") || !fs.existsSync(process.env.APPDATA + "/warden/java/bin/zip.dll")) {
+        //     fsExtra.emptyDirSync(process.env.APPDATA + "/warden/java/bin")
+        //     fsExtra.emptyDirSync(process.env.APPDATA + "/warden/java/bin")
+        // }
+
+    //     if(!fs.existsSync(process.env.APPDATA + "/warden/java/latest/java.exe")) {
+    //         console.log("doesnt have latest")
+    //         const downloader = new Downloader({
+    //             url: "https://launcher.mojang.com/v1/objects/c77b0f22391fad0b2d53c52451d31d1148d8705a/MinecraftJava.exe",
+    //             directory: process.env.APPDATA + "/warden/java/latest",
+    //             fileName: "java.exe", //This will be the file name.
+    //             onProgress: function (percentage, chunk, remainingSize) {
+    //                 //Gets called with each chunk.
+    //                 console.log("java | ", percentage + "%");
+    //                 obj = {
+    //                     type: "java",
+    //                     task: percentage,
+    //                     total: 100
+    //                 }
+    //                 fs.writeFileSync(process.env.APPDATA + "/warden/progress.json", JSON.stringify(obj));
+    //                 if(percentage == 100.00) {
+    //                     finalChecks();
+    //                 }
+    //             },
+    //         });
+    //         try {
+    //             downloader.download();
+    //         } catch (error) {
+    //             console.log(error);
+    //         }
+    //     } else {
+    //         console.log("has")
+    //         continueToStart();
+    //     }
+    // }
+}
+
+function setupForge() {
+    if (!fs.existsSync(process.env.APPDATA + "/warden/forge/forge-"+minecraft_version+"-"+forge_loader_version+"-"+minecraft_version+"-universal.jar")){
+        const fileNN = "forge-"+minecraft_version+"-"+forge_loader_version+"-"+minecraft_version+"-universal.jar";
+        const downloader = new Downloader({
+            url: "https://maven.minecraftforge.net/net/minecraftforge/forge/"+minecraft_version+"-"+forge_loader_version+"-"+minecraft_version+"/forge-"+minecraft_version+"-"+forge_loader_version+"-"+minecraft_version+"-universal.jar",
+            directory: process.env.APPDATA + "/warden/forge",
+            fileName: fileNN, //This will be the file name.
+            onProgress: function (percentage, chunk, remainingSize) {
+                //Gets called with each chunk.
+                console.log(fileNN+" | ", percentage + "%");
+                obj = {
+                    type: "forge",
+                    task: percentage,
+                    total: 100
+                }
+                fs.writeFileSync(process.env.APPDATA + "/warden/progress.json", JSON.stringify(obj));
+                fs.readdir(process.env.APPDATA + "/warden/forge", (err, files) => {
+                    if(files.length == 1 && percentage == 100.00) {
+                        sleep(5000);
+                        continueToStart();
+                    }
+                });
+            },
+        });
+        try {
+            downloader.download();
+        } catch (error) {
+            console.log(error);
+        }
+    } else {
         continueToStart();
     }
 }
@@ -309,7 +404,7 @@ function continueToStart() {
                 user_properties: '{}',
             },
             root: minecraftDirectory,
-            javaPath: "C:/Program Files/Java/jre1.8.0_311/bin/java.exe",
+            javaPath: process.env.APPDATA+"/warden/java/legacy/java.exe",
             forge: process.env.APPDATA + "/warden/forge/"+"forge-"+minecraft_version+"-"+forge_loader_version+"-"+minecraft_version+"-universal.jar",
             version: {
                 number: minecraft_version,
@@ -331,7 +426,7 @@ function continueToStart() {
                 user_properties: '{}',
             },
             root: minecraftDirectory,
-            javaPath: "C:/Program Files/Java/jdk-17/bin/java.exe",
+            javaPath: "C:/Program Files (x86)/Minecraft Launcher/runtime/java-runtime-beta/windows-x64/java-runtime-beta/bin/java.exe",
             version: {
                 number: minecraft_version,
                 type: "release",
@@ -427,4 +522,5 @@ function continueToStart() {
     // });
     launcher.on('debug', (e) => console.log(e));
     launcher.on('data', (e) => console.log(e));
+}
 }
