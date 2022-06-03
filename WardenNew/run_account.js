@@ -150,6 +150,12 @@ function modUpdateCheck() {
                                         onProgress: function (percentage, chunk, remainingSize) {
                                             //Gets called with each chunk.
                                             console.log(finalURL[0].files[0].filename+" | ", percentage + "%");
+                                            obj = {
+                                                type: "modification",
+                                                task: percentage,
+                                                total: 100
+                                            }
+                                            fs.writeFileSync(process.env.APPDATA + "/warden/progress.json", JSON.stringify(obj));
                                             if(!thatThingHappened) {
                                                 fs.readdir(minecraftDirectory + "/mods", (err, files) => {
                                                     if(files.length == tables.length && percentage == 100.00) {
@@ -195,7 +201,12 @@ function modUpdateCheck() {
                                         onProgress: function (percentage, chunk, remainingSize) {
                                             //Gets called with each chunk.
                                             console.log(filename+" | ", percentage + "%");
-
+                                            obj = {
+                                                type: "modification",
+                                                task: percentage,
+                                                total: 100
+                                            }
+                                            fs.writeFileSync(process.env.APPDATA + "/warden/progress.json", JSON.stringify(obj));
                                             if(!thatThingHappened) {
                                                 fs.readdir(minecraftDirectory + "/mods", (err, files) => {
                                                     //fs.existsSync(minecraftDirectory + "/mods/qsl-1.1.0-beta.13_qfapi-1.0.0-beta.16_fapi-0.53.4_mc-1.18.2")
@@ -248,6 +259,12 @@ function finalChecks() {
                 onProgress: function (percentage, chunk, remainingSize) {
                     //Gets called with each chunk.
                     console.log(fileNN+" | ", percentage + "%");
+                    obj = {
+                        type: "forge",
+                        task: percentage,
+                        total: 100
+                    }
+                    fs.writeFileSync(process.env.APPDATA + "/warden/progress.json", JSON.stringify(obj));
                     fs.readdir(process.env.APPDATA + "/warden/forge", (err, files) => {
                         if(files.length == 1 && percentage == 100.00) {
                             sleep(5000);
@@ -347,19 +364,44 @@ function continueToStart() {
     }
 
     if(forge_loader_version) {
-        const replace = require('replace-in-file');
-        const options = {
-            files: minecraftDirectory+"/config/splash.properties",
-            from: [/enabled=true/g],
-            to: ["enabled=false"]
-        };
-        replace(options)
-        .then(result => {
-            console.log("Replacement results: ",result);
-        })
-        .catch(error => {
-            console.log(error);
-        });
+        if(fs.existsSync(minecraftDirectory+"/config")) {
+            if(fs.existsSync(minecraftDirectory+"/config/splash.properties")) {
+                const replace = require('replace-in-file');
+                const options = {
+                    files: minecraftDirectory+"/config/splash.properties",
+                    from: [/enabled=true/g],
+                    to: ["enabled=false"]
+                };
+                replace(options)
+                .then(result => {
+                    console.log("Replacement results: ",result);
+                })
+                .catch(error => {
+                    console.log(error);
+                });
+            } else if (!fs.existsSync(minecraftDirectory+"/config/splash.properties")){
+                fs.writeFileSync(minecraftDirectory+"/config/splash.properties", "enabled=false");
+            }
+        } else {
+            fs.mkdirSync(minecraftDirectory+"/config");
+            if(fs.existsSync(minecraftDirectory+"/config/splash.properties")) {
+                const replace = require('replace-in-file');
+                const options = {
+                    files: minecraftDirectory+"/config/splash.properties",
+                    from: [/enabled=true/g],
+                    to: ["enabled=false"]
+                };
+                replace(options)
+                .then(result => {
+                    console.log("Replacement results: ",result);
+                })
+                .catch(error => {
+                    console.log(error);
+                });
+            } else if (!fs.existsSync(minecraftDirectory+"/config/splash.properties")){
+                fs.writeFileSync(minecraftDirectory+"/config/splash.properties", "enabled=false");
+            }
+        }
     }
 
     if(!forge_loader_version) {
@@ -374,8 +416,15 @@ function continueToStart() {
         }
     }
     launcher.launch(finalOpts);
-    // launcher.on('progress', (e) => fs.writeFileSync(process.env.APPDATA + "/warden/progress.json", JSON.stringify(e)));
-    launcher.on('progress', (e) => console.log(e));
+    //launcher.on('progress', (e) => fs.writeFileSync(process.env.APPDATA + "/warden/progress.json", JSON.stringify(e)));
+    launcher.on('progress', (e) => {
+        fs.writeFileSync(process.env.APPDATA + "/warden/progress.json", JSON.stringify(e));
+        console.log(e)
+    });
+    // launcher.on('download-status', (e) => {
+    //     fs.writeFileSync(process.env.APPDATA + "/warden/progress.json", JSON.stringify(e))
+    //     //console.log("download-status: "+JSON.parse(e).current+"/"+JSON.parse(e).total);
+    // });
     launcher.on('debug', (e) => console.log(e));
     launcher.on('data', (e) => console.log(e));
 }

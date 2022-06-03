@@ -124,11 +124,31 @@ function showToast(text){
         }
       }
 
+    function readTextFile(file, callback) {
+      var rawFile = new XMLHttpRequest();
+      rawFile.overrideMimeType("application/json");
+      rawFile.open("GET", file, true);
+      rawFile.onreadystatechange = function() {
+          if (rawFile.readyState === 4 && rawFile.status == "200") {
+              callback(rawFile.responseText);
+          }
+      }
+      rawFile.send(null);
+    }
+
     function loadGame() {
       var mcVersion = document.getElementById("versionSelectID").value
       ipcRenderer.send('startGame', { data: mcVersion });
-      var e = document.getElementById("ddlViewBy");
-      var strUser = e.options[e.selectedIndex].text;
+      document.getElementById("progressInfoP").style.visibility = "visible";
+      setInterval(function() {
+      readTextFile("C:/Users/Joey/AppData/Roaming/warden/progress.json", function(text){
+        var data = JSON.parse(text);
+        document.getElementById("McProgress").max = data.total;
+        document.getElementById("McProgress").value = data.task;
+        document.getElementById("progressInfoP").innerHTML = "loading: "+data.type;
+        console.log(data);
+      });
+      }, 1);
     }
 </script>
 
@@ -185,6 +205,8 @@ function showToast(text){
         </svg>
       </div>
       <div class="button" onclick="loadGame(); showToast('Launching Minecraft. Please wait.');"><b>PLAY</b></div>
+      <p id="progressInfoP" style="left: 30px; bottom: -12px; position:absolute; visibility: hidden;">LOADING</p>
+      <progress id="McProgress" style="left: 26.7%; position:absolute;" value="0" max="100"></progress>
     </center>
     <div id="events"></div>
     <div id="toast"></div>
