@@ -90,25 +90,36 @@
 })(window);
 
 
-var documentReady = function (fn) {
-  if (document.readyState != 'loading') {
-    fn();
-  } else {
-    document.addEventListener('DOMContentLoaded', fn);
-  }
-};
+// var secondaryMinecraftVersion;
+// var clientLoaderType;
+// var secondaryClientLoaderType;
+// var loaderVersion;
+// var javaVersionRequired;
 
-documentReady(function() {
-  var sample = new SideMenu(document.querySelector('.wui-side-menu'))
-  sample.htmlElement.addEventListener('menuPinStateChanged', function(e) {
-    document.querySelector('#events').innerHTML += 'menuPinStateChanged , menu pinned? => ' 
-      + e.detail.pinned + '<br>'; 
-  }, false);
-  sample.htmlElement.addEventListener('menuStateChanged', function(e) {
-    document.querySelector('#events').innerHTML += 'menuStateChanged , menu open? => ' 
-      + e.detail.open + '<br>'; 
-  }, false);
-});
+document.addEventListener('DOMContentLoaded',pageLoaded);
+function pageLoaded(){
+  //TODO: Make this read from Github GIST
+  readTextFile("./l.json", function(text){
+    var parsed = JSON.parse(text);
+    var x = document.getElementById("versionSelectID");
+    var versions =[];
+    for (let i = 0; i < parsed.entries.length; i++) {
+      versions.push(parsed.entries[i].minecraftVersion)
+    }
+    for(var i = 0; i < versions.length; i++) {
+      var opt = versions[i];
+      var el = document.createElement("option");
+      el.textContent = opt;
+      el.value = opt;
+      x.appendChild(el);
+    }
+    console.log(versions)
+    //ipcRenderer.send('zong', JSON.parse(text);
+  });
+
+  console.log("ready")
+}
+
 
 function showToast(text){
         var isShowing = false;
@@ -120,7 +131,7 @@ function showToast(text){
           setTimeout(function(){
             x.classList.remove("show");
             var isShowing = false;
-        },3000);
+          },3000);
         }
       }
 
@@ -144,7 +155,26 @@ function showToast(text){
         console.log(arg) // prints "pong"
         appdata = arg;
       })
-      ipcRenderer.send('startGame', { data: mcVersion });
+      var everythingNeeded = []
+      //TODO: Make this read from Github GIST
+      readTextFile("./l.json", function(text){
+      var parsed = JSON.parse(text);
+      for (let i = 0; i < parsed.entries.length; i++) {
+        if(parsed.entries[i].minecraftVersion === mcVersion) {
+          everythingNeeded.push(parsed.entries[i].minecraftVersion);
+          everythingNeeded.push(parsed.entries[i].secondaryMinecraftVersion);
+          everythingNeeded.push(parsed.entries[i].clientLoaderType);
+          everythingNeeded.push(parsed.entries[i].secondaryClientLoaderType);
+          everythingNeeded.push(parsed.entries[i].loaderVersion);
+          everythingNeeded.push(parsed.entries[i].javaVersionRequired);
+        }
+      }
+      //ipcRenderer.send('zong', JSON.parse(text);
+    });
+
+      setTimeout(function(){
+        ipcRenderer.send('startGame', { minecraftEverything: everythingNeeded });
+      },50);
       document.getElementById("progressInfoP").style.visibility = "visible";
       setInterval(function() {
       readTextFile(appdata+"/warden/progress.json", function(text){
@@ -166,12 +196,12 @@ function showToast(text){
       </a>
     </li>
     <li>
-      <a href="#" class="wui-side-menu-item" onclick="showToast('Coming Soon!');">
+      <a href="./menus/friends.html" class="wui-side-menu-item">
         <b><span class="box-title">Friends</span></b>
       </a>
     </li>
     <li>
-      <a href="#" class="wui-side-menu-item" onclick="showToast('Coming Soon!');">
+      <a href="./menus/accounts.html" class="wui-side-menu-item">
         <b><span class="box-title">Accounts</span></b>
       </a>
     </li>
@@ -197,11 +227,8 @@ function showToast(text){
       <h2>A simple and modern Minecraft client.</h2>
       <h3 id="signedin" style="display: inline-block;">Signed in as</h3>
       <img id="avatar" src="https://crafatar.com/avatars/" alt="AVATAR" width="25" height="25" style="position: relative; top: 5px;" onerror="if (this.src != 'https://crafatar.com/avatars/853c80ef3c3749fdaa49938b674adae6') this.src = 'https://crafatar.com/avatars/853c80ef3c3749fdaa49938b674adae6';">
-      <!-- <progress id="file" max="100"> 32% </progress> -->
       <div class="select" style="width: 200px;">
         <select id="versionSelectID">
-          <option>1.18.2</option>
-          <option>1.8.9</option>
         </select>
         <fieldset>
           <legend>Version</legend>

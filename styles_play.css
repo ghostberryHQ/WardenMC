@@ -73,8 +73,8 @@
     progress {
       width: 50.2%;
       position: absolute;
-      left: 25.7%;
-      bottom:0;
+      left: 25.9%;
+      bottom:-0.49px;
     }
 
     .box {

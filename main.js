@@ -1,5 +1,9 @@
 const {app, ipcMain, BrowserWindow} = require('electron');
 const { Authenticator } = require('minecraft-launcher-core');
+const rpc = require("discord-rpc");
+const config = require('./config.json')
+const client = new rpc.Client({ transport: 'ipc' });
+client.login({ clientId : config.DiscordAPI }).catch(console.error); 
 
 if (require('electron-squirrel-startup')) { // eslint-disable-line global-require
   app.quit();
@@ -114,8 +118,8 @@ ipcMain.on('startGame', (event, arg) => {
     app.quit();
   }
 
-  var MinecraftVersionArg = [arg.data];
-  var cp = childProcess.fork(path.join(__dirname, "WardenNew/run_account.js"), MinecraftVersionArg);
+  var MinecraftArgs = [arg.minecraftEverything];
+  var cp = childProcess.fork(path.join(__dirname, "WardenNew/run_account.js"), MinecraftArgs);
   cp.on("exit", function (code, signal) {
     console.log("Exited", {code: code, signal: signal});
   });
@@ -131,6 +135,10 @@ ipcMain.on('requestForAppData', (event, arg) => {
   event.reply('requestForAppDataReply', process.env.APPDATA)
 })
 
+ipcMain.on('zong', (event, arg) => {
+  console.log(arg.ontry[0])
+})
+
 function signOut() {
   const data223 = fs.readFileSync(process.env.APPDATA + "/warden/auth/auth.json");
   const data333 = JSON.parse(data223);
@@ -139,3 +147,18 @@ function signOut() {
   fs.unlinkSync(process.env.APPDATA + "/warden/auth/auth.json");
   fs.unlinkSync(process.env.APPDATA + "/warden/auth/auth_profile.json");
 }
+
+client.on('ready', () => {
+      client.request('SET_ACTIVITY', {
+      pid: process.pid,
+      activity: {
+          state: 'Poking Around',
+      assets: {
+          large_image: 'warden_head',
+      },
+      timestamps: {
+        start: Date.now(),
+      },
+    }
+  })
+});
