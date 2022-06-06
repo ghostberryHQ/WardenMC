@@ -25,6 +25,7 @@
         <script>
 
           const { ipcRenderer } = require('electron');
+          const fetch = require('node-fetch');
 
           /* Kristuff.WebUI.SideMenu */
 (function (window, undefined) {
@@ -98,23 +99,27 @@
 
 document.addEventListener('DOMContentLoaded',pageLoaded);
 function pageLoaded(){
-  //TODO: Make this read from Github GIST
-  readTextFile("./l.json", function(text){
-    var parsed = JSON.parse(text);
-    var x = document.getElementById("versionSelectID");
-    var versions =[];
-    for (let i = 0; i < parsed.entries.length; i++) {
-      versions.push(parsed.entries[i].minecraftVersion)
-    }
-    for(var i = 0; i < versions.length; i++) {
-      var opt = versions[i];
-      var el = document.createElement("option");
-      el.textContent = opt;
-      el.value = opt;
-      x.appendChild(el);
-    }
-    console.log(versions)
-    //ipcRenderer.send('zong', JSON.parse(text);
+  
+  let settings = { method: "Get" };
+
+  fetch("https://gist.githubusercontent.com/spjoes/ff7d3badeccaa52444def6963076b503/raw/wardenVersionConfig.json", settings)
+    .then(res => res.json())
+    .then((json) => {
+      //var parsed = JSON.parse(text);
+      var x = document.getElementById("versionSelectID");
+      var versions =[];
+      for (let i = 0; i < json.entries.length; i++) {
+        versions.push(json.entries[i].minecraftVersion)
+      }
+      for(var i = 0; i < versions.length; i++) {
+        var opt = versions[i];
+        var el = document.createElement("option");
+        el.textContent = opt;
+        el.value = opt;
+        x.appendChild(el);
+      }
+      console.log(versions)
+      //ipcRenderer.send('zong', JSON.parse(text);
   });
 
   console.log("ready")
@@ -156,19 +161,19 @@ function showToast(text){
         appdata = arg;
       })
       var everythingNeeded = []
-      //TODO: Make this read from Github GIST
-      readTextFile("./l.json", function(text){
-      var parsed = JSON.parse(text);
-      for (let i = 0; i < parsed.entries.length; i++) {
-        if(parsed.entries[i].minecraftVersion === mcVersion) {
-          everythingNeeded.push(parsed.entries[i].minecraftVersion);
-          everythingNeeded.push(parsed.entries[i].secondaryMinecraftVersion);
-          everythingNeeded.push(parsed.entries[i].clientLoaderType);
-          everythingNeeded.push(parsed.entries[i].secondaryClientLoaderType);
-          everythingNeeded.push(parsed.entries[i].loaderVersion);
-          everythingNeeded.push(parsed.entries[i].javaVersionRequired);
+      fetch("https://gist.githubusercontent.com/spjoes/ff7d3badeccaa52444def6963076b503/raw/wardenVersionConfig.json", settings)
+      .then(res => res.json())
+      .then((json) => {
+        for (let i = 0; i < json.entries.length; i++) {
+          if(json.entries[i].minecraftVersion === mcVersion) {
+            everythingNeeded.push(json.entries[i].minecraftVersion);
+            everythingNeeded.push(json.entries[i].secondaryMinecraftVersion);
+            everythingNeeded.push(json.entries[i].clientLoaderType);
+            everythingNeeded.push(json.entries[i].secondaryClientLoaderType);
+            everythingNeeded.push(json.entries[i].loaderVersion);
+            everythingNeeded.push(json.entries[i].javaVersionRequired);
+          }
         }
-      }
       //ipcRenderer.send('zong', JSON.parse(text);
     });
 
