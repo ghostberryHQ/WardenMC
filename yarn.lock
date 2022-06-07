@@ -2769,7 +2769,7 @@ ms@^2.0.0, ms@^2.1.1:
 
 msmc@3.1.0:
   version "3.1.0"
-  resolved "https://registry.npmjs.org/msmc/-/msmc-3.1.0.tgz"
+  resolved "https://registry.yarnpkg.com/msmc/-/msmc-3.1.0.tgz#bf68d8f6d328cd9500f1137656f2bed8c389fe93"
   integrity sha512-kE2QOKGQFabPbVyrqMgNhwysW+m/u7wni8sYDmQEZld4Gkbq+Z9Gc+SQ+xE0D+LOMqUj3rIJG57tkDl6PesA0w==
   dependencies:
     node-fetch "2.x"
@@ -4008,7 +4008,7 @@ tough-cookie@~2.5.0:
 
 tr46@~0.0.3:
   version "0.0.3"
-  resolved "https://registry.npmjs.org/tr46/-/tr46-0.0.3.tgz"
+  resolved "https://registry.yarnpkg.com/tr46/-/tr46-0.0.3.tgz#8184fd347dac9cdc185992f3a6622e14b9d9ab6a"
   integrity sha1-gYT9NH2snNwYWZLzpmIuFLnZq2o=
 
 trim-repeated@^1.0.0:
@@ -4167,7 +4167,7 @@ wcwidth@^1.0.1:
 
 webidl-conversions@^3.0.0:
   version "3.0.1"
-  resolved "https://registry.npmjs.org/webidl-conversions/-/webidl-conversions-3.0.1.tgz"
+  resolved "https://registry.yarnpkg.com/webidl-conversions/-/webidl-conversions-3.0.1.tgz#24534275e2a7bc6be7bc86611cc16ae0a5654871"
   integrity sha1-JFNCdeKnvGvnvIZhHMFq4KVlSHE=
 
 whatwg-fetch@^3.6.2:
@@ -4177,7 +4177,7 @@ whatwg-fetch@^3.6.2:
 
 whatwg-url@^5.0.0:
   version "5.0.0"
-  resolved "https://registry.npmjs.org/whatwg-url/-/whatwg-url-5.0.0.tgz"
+  resolved "https://registry.yarnpkg.com/whatwg-url/-/whatwg-url-5.0.0.tgz#966454e8765462e37644d3626f6742ce8b70965d"
   integrity sha1-lmRU6HZUYuN2RNNib2dCzotwll0=
   dependencies:
     tr46 "~0.0.3"

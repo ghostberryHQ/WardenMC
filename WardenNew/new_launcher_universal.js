@@ -24,6 +24,7 @@ function startMiLP() {
                 console.log(result.reason)
                 return;
             }
+            console.log(result)
             console.log("Starting!")
             const auth = msmc.getMCLC().getAuth(result);
             const obj1 = JSON.stringify(auth);
@@ -31,6 +32,7 @@ function startMiLP() {
             const obj3 = JSON.stringify(result.profile);
             console.log(obj2.access_token);
             console.log(obj2.client_token);
+            
 
             if (!fs.existsSync(process.env.APPDATA + "/warden/auth")){
                 fs.mkdirSync(process.env.APPDATA + "/warden/auth");
@@ -38,8 +40,9 @@ function startMiLP() {
 
             fs.writeFileSync(process.env.APPDATA + "/warden/auth/auth.json", obj1);
             fs.writeFileSync(process.env.APPDATA + "/warden/auth/auth_profile.json", obj3);
+
             console.log("Data has been written to file successfully.");
-            window.location = "./play.html"; 
+            window.location = "./play.html";
             
         }).catch(reason => {
             //If the login fails

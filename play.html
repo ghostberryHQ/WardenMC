@@ -157,10 +157,17 @@ function showToast(text){
       var mcVersion = document.getElementById("versionSelectID").value
       ipcRenderer.send('requestForAppData', 'please')
       ipcRenderer.on('requestForAppDataReply', (event, arg) => {
-        console.log(arg) // prints "pong"
+        console.log(arg)
         appdata = arg;
       })
       var everythingNeeded = []
+      let settings = { method: "Get" };
+      function sleep(ms) {
+        return new Promise((resolve) => {
+          setTimeout(resolve, ms);
+        });
+      }
+
       fetch("https://gist.githubusercontent.com/spjoes/ff7d3badeccaa52444def6963076b503/raw/wardenVersionConfig.json", settings)
       .then(res => res.json())
       .then((json) => {
@@ -179,16 +186,16 @@ function showToast(text){
 
       setTimeout(function(){
         ipcRenderer.send('startGame', { minecraftEverything: everythingNeeded });
-      },50);
+      },500);
       document.getElementById("progressInfoP").style.visibility = "visible";
       setInterval(function() {
-      readTextFile(appdata+"/warden/progress.json", function(text){
-        var data = JSON.parse(text);
-        document.getElementById("McProgress").max = data.total;
-        document.getElementById("McProgress").value = data.task;
-        document.getElementById("progressInfoP").innerHTML = "loading: "+data.type;
-        console.log(data);
-      });
+        readTextFile(appdata+"/warden/progress.json", function(text){
+          var data = JSON.parse(text);
+          document.getElementById("McProgress").max = data.total;
+          document.getElementById("McProgress").value = data.task;
+          document.getElementById("progressInfoP").innerHTML = "loading: "+data.type;
+          console.log(data);
+        });
       }, 1);
     }
 </script>
