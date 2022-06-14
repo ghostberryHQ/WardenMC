@@ -1,8 +1,6 @@
 const { Client, Authenticator } = require('minecraft-launcher-core');
-const { ipcRenderer } = require('electron');
 const fs = require("fs");
 const msmc = require("msmc");
-const fetch = require("node-fetch");
 
 function startMoLP() {
     console.log(document.getElementById("usernameInput").value);

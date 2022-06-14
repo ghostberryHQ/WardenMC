@@ -96,16 +96,64 @@
 // var secondaryClientLoaderType;
 // var loaderVersion;
 // var javaVersionRequired;
-
+var alerted = false;
 document.addEventListener('DOMContentLoaded',pageLoaded);
 function pageLoaded(){
+
+
+  if(fs.existsSync(process.env.APPDATA+"/warden/minecraft/logs/latest.log")) {
+    fs.unlink(process.env.APPDATA+"/warden/minecraft/logs/latest.log", (err) => {
+  if (err) {
+    console.error(err)
+    return
+  }
+    })
+  }
+
+
+  // Get the modal
+  var modal = document.getElementById("myModal");
+  var crashTitle = document.getElementById("CrashTitle");
+
+  // Get the <span> element that closes the modal
+  var span = document.getElementsByClassName("close")[0];
+  modal.style.display = "none";
+  // When the user clicks on <span> (x), close the modal
+  span.onclick = function() {
+    modal.style.display = "none";
+  }
+
+  // When the user clicks anywhere outside of the modal, close it
+  window.onclick = function(event) {
+    if (event.target == modal) {
+      modal.style.display = "none";
+    }
+  }
+
+  CrashTitleLines = ["Shiver Me Timbers 🍺", "Crash! 🥴", "Crash! 😢", "Task failed successfully!", "Mission not accomplished!", "Something happened", "You're screwed 🔩", "Aw Man 💥"]
+
+  setInterval(function(){ 
+    if(fs.existsSync(process.env.APPDATA+"/warden/minecraft/logs/latest.log") && alerted === false) {
+      readTextFile(process.env.APPDATA+"/warden/minecraft/logs/latest.log", function(text){
+      console.log(text)
+      console.log(text.includes("Minecraft has crashed!"))
+      console.log(modal.style.display)
+      if(modal.style.display === "none" && text.includes("Minecraft has crashed!")) {
+        crashTitle.innerHTML = CrashTitleLines[Math.floor(Math.random() * CrashTitleLines.length)];
+        modal.style.display = "block";
+        alerted = true;
+      }
+    });
+    }
+  },1000)
   
   let settings = { method: "Get" };
 
   fetch("https://gist.githubusercontent.com/spjoes/ff7d3badeccaa52444def6963076b503/raw/wardenVersionConfig.json", settings)
     .then(res => res.json())
     .then((json) => {
-      //var parsed = JSON.parse(text);
+    // readTextFile("./l.json", function(text){
+      //var parsed = JSON.parse(json);
       var x = document.getElementById("versionSelectID");
       var versions =[];
       for (let i = 0; i < json.entries.length; i++) {
@@ -153,6 +201,17 @@ function showToast(text){
     }
 
     function loadGame() {
+      if(alerted === true) {
+        alerted = false
+        if(fs.existsSync(process.env.APPDATA+"/warden/minecraft/logs/latest.log")) {
+          fs.unlink(process.env.APPDATA+"/warden/minecraft/logs/latest.log", (err) => {
+        if (err) {
+          console.error(err)
+          return
+        }
+          })
+        }
+      }
       var appdata;
       var mcVersion = document.getElementById("versionSelectID").value
       ipcRenderer.send('requestForAppData', 'please')
@@ -171,14 +230,16 @@ function showToast(text){
       fetch("https://gist.githubusercontent.com/spjoes/ff7d3badeccaa52444def6963076b503/raw/wardenVersionConfig.json", settings)
       .then(res => res.json())
       .then((json) => {
+      // readTextFile("./l.json", function(text){
+        //var parsed = JSON.parse(json);
         for (let i = 0; i < json.entries.length; i++) {
           if(json.entries[i].minecraftVersion === mcVersion) {
-            everythingNeeded.push(json.entries[i].minecraftVersion);
-            everythingNeeded.push(json.entries[i].secondaryMinecraftVersion);
-            everythingNeeded.push(json.entries[i].clientLoaderType);
-            everythingNeeded.push(json.entries[i].secondaryClientLoaderType);
-            everythingNeeded.push(json.entries[i].loaderVersion);
-            everythingNeeded.push(json.entries[i].javaVersionRequired);
+              everythingNeeded.push(json.entries[i].minecraftVersion);
+              everythingNeeded.push(json.entries[i].secondaryMinecraftVersion);
+              everythingNeeded.push(json.entries[i].clientLoaderType);
+              everythingNeeded.push(json.entries[i].secondaryClientLoaderType);
+              everythingNeeded.push(json.entries[i].loaderVersion);
+              everythingNeeded.push(json.entries[i].javaVersionRequired);
           }
         }
       //ipcRenderer.send('zong', JSON.parse(text);
@@ -186,7 +247,7 @@ function showToast(text){
 
       setTimeout(function(){
         ipcRenderer.send('startGame', { minecraftEverything: everythingNeeded });
-      },500);
+      },1000);
       document.getElementById("progressInfoP").style.visibility = "visible";
       setInterval(function() {
         readTextFile(appdata+"/warden/progress.json", function(text){
@@ -239,6 +300,21 @@ function showToast(text){
       <h2>A simple and modern Minecraft client.</h2>
       <h3 id="signedin" style="display: inline-block;">Signed in as</h3>
       <img id="avatar" src="https://crafatar.com/avatars/" alt="AVATAR" width="25" height="25" style="position: relative; top: 5px;" onerror="if (this.src != 'https://crafatar.com/avatars/853c80ef3c3749fdaa49938b674adae6') this.src = 'https://crafatar.com/avatars/853c80ef3c3749fdaa49938b674adae6';">
+      
+      <div id="myModal" class="modal">
+
+        <!-- Modal content -->
+        <div class="modal-content">
+          <span class="close">&times;</span>
+          <p id="CrashTitle" style="color:black"></p>
+          <p style="color:black">Minecraft has crashed. Please restart Warden. If that doesnt fix it please report the crash in Discord</p>
+        </div>
+      
+      </div>
+
+
+      <!-- <h2 style="opacity: 0.5; padding-top:60px">WARDEN PROTOTYPE EDITION</h1>
+      <h2 style="opacity: 0.5;">ANYTHING SEEN AND VIEWED IS IN PRODUCTION STATE AND SHOULD NOT BE EXPECTED TO MAKE IT TO FULL RELEASE</h1> -->
       <div class="select" style="width: 200px;">
         <select id="versionSelectID">
         </select>

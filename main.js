@@ -2,6 +2,10 @@ const {app, ipcMain, BrowserWindow} = require('electron');
 const { Authenticator } = require('minecraft-launcher-core');
 const rpc = require("discord-rpc");
 const config = require('./config.json')
+var childProcess = require("child_process");
+const fs = require("fs");
+const ChildProcess = require('child_process');
+const path = require('path');
 const client = new rpc.Client({ transport: 'ipc' });
 client.login({ clientId : config.DiscordAPI }).catch(console.error); 
 
@@ -13,9 +17,6 @@ function handleSquirrelEvent() {
   if (process.argv.length === 1) {
     return false;
   }
-
-  const ChildProcess = require('child_process');
-  const path = require('path');
 
   const appFolder = path.resolve(process.execPath, '..');
   const rootAtomFolder = path.resolve(appFolder, '..');
@@ -71,9 +72,6 @@ function handleSquirrelEvent() {
   }
 };
 
-var childProcess = require("child_process");
-var path = require("path");
-const fs = require("fs");
   function createWindow () {
     const win = new BrowserWindow({
       icon:'./images/icon.png',
@@ -120,6 +118,7 @@ ipcMain.on('startGame', (event, arg) => {
 
   var MinecraftArgs = [arg.minecraftEverything];
   var cp = childProcess.fork(path.join(__dirname, "WardenNew/run_account.js"), MinecraftArgs);
+  //var cp = childProcess.fork(path.join(__dirname, "WardenNew/40_run.js"));
   cp.on("exit", function (code, signal) {
     console.log("Exited", {code: code, signal: signal});
   });
