@@ -4,3 +4,5 @@ build/
 warden-win32-x64/
 windows_installer/
 config.json
+.vscode/
+yarn.lock

@@ -1,0 +1,57 @@
+@import "https://fonts.googleapis.com/css?family=Raleway";
+body {
+  font-family: "Raleway", "Microsoft JhengHei", Arial, sans-serif;
+}
+
+.profile {
+  width: 330px;
+  height: 100px;
+  position: absolute;
+  top: 25%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 5px;
+  background-color: #3C6E71;
+}
+
+.profile .photo,
+.profile .content22 {
+  box-sizing: border-box;
+}
+.profile .photo {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 5px solid #315a5c;
+  background-color: #315a5c;
+  margin-left: -230px;
+}
+
+.profile .photo img {
+  width: 100%;
+}
+.profile .content22 {
+  padding: 10px;
+  overflow: hidden;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+}
+
+.text, h3, h6 {
+    color:#E2E2E2;
+}
+
+h3 {
+    position: absolute;
+    left: 32%;
+    top:12%;
+}
+h6 {
+    position: absolute;
+    left: 32%;
+    top: 30%;
+}

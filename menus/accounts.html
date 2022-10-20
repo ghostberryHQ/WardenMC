@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="stylesheet" href="../styles_play.css">
+    <link rel="stylesheet" href="../circles_play.css">
+    <link rel="stylesheet" href="./profiles.css">
+    <script src="../main.js"></script>
+    <meta charset="UTF-8">
+    <title>Warden</title>
+  </head>
+  <body>
+    <div class="area" >
+        <ul class="circles">
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+        </ul>
+    </div >
+        <script>
+
+          const { ipcRenderer } = require('electron');
+
+          /* Kristuff.WebUI.SideMenu */
+(function (window, undefined) {
+    'use strict';
+    // responsive pinnable sidemenu component
+    var sideMenu = function (el) {
+        var htmlSideMenu = el, htmlSideMenuPinTrigger = {}, htmlSideMenuPinTriggerImage = {}, htmlOverlay = {};
+        var init = function () {
+            htmlSideMenuPinTrigger = el.querySelector('.wui-side-menu-pin-trigger');
+            htmlOverlay = document.querySelector('.wui-overlay');
+            Array.prototype.forEach.call(document.querySelectorAll('.wui-side-menu-trigger'), function (elmt, i) {
+                elmt.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    toggleMenuState();
+                }, false);
+            });
+            htmlOverlay.addEventListener("click", function (e) {
+                htmlSideMenu.classList.remove('open');
+            }, false);
+            window.addEventListener("resize", checkIfNeedToCloseMenu, false);
+            checkIfNeedToCloseMenu();
+        };
+        var toggleMenuState = function () {
+            htmlSideMenu.classList.toggle('open');
+            menuStateChanged(htmlSideMenu, htmlSideMenu.classList.contains('open'));
+        };
+        var toggleMenuPinState = function () {
+            htmlSideMenu.classList.toggle('pinned');
+            htmlSideMenuPinTriggerImage.classList.toggle('fa-rotate-90');
+            if (htmlSideMenu.classList.contains('pinned') !== true) {
+                htmlSideMenu.classList.remove('open');
+            }
+            menuPinStateChanged(htmlSideMenu, htmlSideMenu.classList.contains('pinned'));
+        };
+        var checkIfNeedToCloseMenu = function () {
+            var width = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
+            if (width <= 767 && htmlSideMenu.classList.contains('open') === true) {
+                htmlSideMenu.classList.remove('open');
+                menuStateChanged(htmlSideMenu, htmlSideMenu.classList.contains('open'));
+            }
+            if (width > 767 && htmlSideMenu.classList.contains('pinned') === false) {
+                htmlSideMenu.classList.remove('open');
+                menuStateChanged(htmlSideMenu, htmlSideMenu.classList.contains('open'));
+            }
+        };
+        var menuStateChanged = function (element, state) {
+            var evt = new CustomEvent('menuStateChanged', { detail: { open: state} });
+            element.dispatchEvent(evt);
+        };
+        var menuPinStateChanged = function (element, state) {
+            var evt = new CustomEvent('menuPinStateChanged', { detail: { pinned: state} });
+            element.dispatchEvent(evt);
+        };
+        init();
+        return {
+            htmlElement: htmlSideMenu,
+            toggleMenuState: toggleMenuState,
+            toggleMenuPinState: toggleMenuPinState
+        };
+    };
+    
+    window.SideMenu = sideMenu;
+})(window);
+
+function readTextFile(file, callback) {
+      var rawFile = new XMLHttpRequest();
+      rawFile.overrideMimeType("application/json");
+      rawFile.open("GET", file, true);
+      rawFile.onreadystatechange = function() {
+          if (rawFile.readyState === 4 && rawFile.status == "200") {
+              callback(rawFile.responseText);
+          }
+      }
+      rawFile.send(null);
+    }
+
+
+document.addEventListener('DOMContentLoaded',pageLoaded);
+function pageLoaded(){
+  readTextFile(process.env.APPDATA + "/warden/auth/auth_profile.json", function(text){
+    var parsed = JSON.parse(text);
+    var Name = document.getElementById("MCName");
+    var UUID = document.getElementById("MCUUID");
+    var image = document.getElementById("MCSkin");
+    document.getElementById("MCSkin").src = "https://crafatar.com/avatars/"+parsed.id+"?size=100";
+    Name.innerHTML = parsed.name;
+    UUID.innerHTML = parsed.id;
+    console.log(parsed)
+    //ipcRenderer.send('zong', JSON.parse(text);
+  });
+
+  console.log("ready")
+}
+
+function showToast(text){
+        var isShowing = false;
+        var x=document.getElementById("toast");
+        if(isShowing == false) {
+          x.classList.add("show");
+          var isShowing = true;
+          x.innerHTML=text;
+          setTimeout(function(){
+            x.classList.remove("show");
+            var isShowing = false;
+        },3000);
+        }
+      }
+</script>
+
+<div class="wui-side-menu open pinned" data-wui-theme="dark">    
+  <ul class="wui-side-menu-items">
+    <li>
+      <a href="../play.html" class="wui-side-menu-item">
+        <b><span class="box-title">Play</span></b>
+      </a>
+    </li>
+    <li>
+      <a id="friendsTab" href="./friends.html?uuid=" class="wui-side-menu-item">
+        <b><span class="box-title">Friends</span></b>
+      </a>
+    </li>
+    <li>
+      <a href="#" class="wui-side-menu-item active">
+        <b><span class="box-title">Accounts</span></b>
+      </a>
+    </li>
+    <li>
+      <a href="#" class="wui-side-menu-item" onclick="showToast('Coming Soon!');">
+        <b><span class="box-title">Settings</span></b>
+      </a>
+    </li>
+    <li>
+      <a href="#" class="wui-side-menu-item" style="bottom:0; position:absolute;" onclick="signOut();">
+        <b><span class="box-title">Sign Out</span></b>
+      </a>
+    </li>
+  </ul>
+</div>
+<div class="wui-content">
+  <div class="wui-content-header">
+    <a href="#" class="wui-side-menu-trigger"><i class="fa fa-bars"></i></a>
+  </div> 
+  <div class="wui-content-main">
+    <center>
+      <h1>Accounts</h1>
+      <div class="profile">
+        <div class="photo"><img id="MCSkin"/></div>
+        <div class="content22">
+            <div class="text">
+                <h3 id="MCName"></h3>
+                <h6 id="MCUUID"></h6>
+            </div>
+        </div>
+        </div>
+      </div>
+    </center>
+    <div id="events"></div>
+    <div id="toast"></div>
+  </div>
+</div>
+  </div>
+
+
+  <script>
+
+    //get url parameter uuid
+    var urlParams = new URLSearchParams(window.location.search);
+    var uuid = urlParams.get('uuid');
+
+    //get element by id
+    document.getElementById("friendsTab").href = "./friends.html?uuid=" + uuid;
+
+  </script>
+</html>

@@ -7,7 +7,8 @@ const fs = require('fs');
 const fetch = require('node-fetch');
 const curseforge = require("mc-curseforge-api");
 const {Modrinth} = require("modrinth")
-const fsExtra = require('fs-extra')
+const fsExtra = require('fs-extra');
+const file = require('fs-extra/lib/ensure/file');
 var minecraftVersion;
 var secondaryMCVersion;
 var clientLoaderType;
@@ -60,12 +61,30 @@ function checkValid() {
     if(isValid == true) {
         modUpdateCheck();
     } else {
-        msmc.refresh(parsedAuthProfile).then(async mod => {
-            console.log(mod)
-            const refreshedFile = JSON.stringify(mod.profile);
-            fs.writeFileSync(process.env.APPDATA + "/warden/auth/auth_profile.json", refreshedFile);
-            console.log(refreshedFile);
-         });
+        console.log(parsedAuthProfile)
+        msmc.refresh(parsedAuthProfile).then(async newProfile => {
+            console.log(newProfile);
+            if(newProfile.reason === "Could not log into Microsoft" && newProfile.translationString === "Login.Fail.MS") {
+                console.log("Invalid");
+
+                fs.unlinkSync(process.env.APPDATA + "/warden/auth/auth_profile.json");
+                fs.unlinkSync(process.env.APPDATA + "/warden/auth/auth.json");
+
+            } else {
+                console.log("valid")
+                modUpdateCheck();
+            }
+
+            // if(err) {
+            //     console.log(err);
+            // } else {
+            //     const refreshedFile = JSON.stringify(newProfile.profile);
+            //     fs.writeFileSync(process.env.APPDATA + "/warden/auth/auth_profile.json", refreshedFile);
+            //     console.log(refreshedFile);
+            // }
+        }).catch(err => {
+            console.log(err);
+        });
     }
 }
 
@@ -85,7 +104,7 @@ function modUpdateCheck() {
         console.log("User had mods folder");
         if(!fs.existsSync(process.env.APPDATA+"/warden/mods/wardenModConfig.json")){
 
-            fetch("https://gist.githubusercontent.com/spjoes/d5527ea350baf8fa564e17e78f01873d/raw/wardenModConfig.json", settings)
+            fetch("https://api.persn.dev/warden/getMods", settings)
             .then(res => res.json())
             .then((json) => {
                 const STRUNGJSON = JSON.stringify(json);
@@ -97,7 +116,7 @@ function modUpdateCheck() {
             console.log("User had wardenModConfig.json");
             const wardenModConfigJSON = fs.readFileSync(process.env.APPDATA+"/warden/mods/wardenModConfig.json");
             const parsedWardenModConfigJSON = JSON.parse(wardenModConfigJSON);
-            fetch("https://gist.githubusercontent.com/spjoes/d5527ea350baf8fa564e17e78f01873d/raw/wardenModConfig.json", settings)
+            fetch("https://api.persn.dev/warden/getMods", settings)
                 .then(res => res.json())
                 .then((json) => {
                 const stringifyUrlData = JSON.stringify(json);
@@ -141,14 +160,14 @@ function modUpdateCheck() {
     
                                 if(modSITE == "modrinth") {
                                     modrinth.mod(modNAME).then(async mod => {
-                                        const url = await mod.versions();
+                                        const url = await mod.versions().catch(err => {console.log(err)});
                                         let sodium = []
                                         for (let step = 0; step < url.length; step++) {
                                             if((url[step]._source.loaders.includes(clientLoaderType) || url[step]._source.loaders.includes(secondaryClientLoaderType)) && (url[step]._source.game_versions.includes(minecraftVersion) || url[step]._source.game_versions.includes(secondaryMCVersion))) {
                                                 sodium.push(url[step]._source.date_published);
-                                                console.log(url[step]._source.mod_id + " : added")
+                                                // console.log(url[step]._source.mod_id + " : added")
                                             } else {
-                                                console.log(url[step].mod_id + " : none at " + step)
+                                                // console.log(url[step].mod_id + " : none at " + step)
                                             }
                                         }
                                         sodium.sort();
@@ -160,7 +179,7 @@ function modUpdateCheck() {
                                                 fileName: finalURL[0].files[0].filename, //This will be the file name.
                                                 onProgress: function (percentage, chunk, remainingSize) {
                                                     //Gets called with each chunk.
-                                                    console.log(finalURL[0].files[0].filename+" | ", percentage + "%");
+                                                    // console.log(finalURL[0].files[0].filename+" | ", percentage + "%");
                                                     obj = {
                                                         type: "modification",
                                                         task: percentage,
@@ -185,6 +204,8 @@ function modUpdateCheck() {
                                             }
                                         }
     
+                                    }).catch(err => {
+                                        console.log(err);
                                     });
     
                                 }
@@ -192,62 +213,63 @@ function modUpdateCheck() {
                                     function capitalizeFirstLetter(string) {
                                         return string.charAt(0).toUpperCase() + string.slice(1);
                                     }
-                                    curseforge.getModFiles(modID).then((files) => {
+                                    fetch(`https://api.persn.dev/curseforge/${modID}`)
+                                    .then(res => res.json())
+                                    .then(json => {
                                         let timestampsArray = []
-                                    for (let step = 0; step < files.length; step++) {
                                         console.log(modNAME)
-                                        console.log(files[step].minecraft_versions);
-                                            if(modNAME === "mouse-tweaks" && (files[step].minecraft_versions.includes(minecraftVersion) || files[step].minecraft_versions.includes(secondaryMCVersion))) {
-                                                console.log("main: " + minecraftVersion)
-                                                console.log("secondary: " + secondaryMCVersion)
-                                                console.log("loadertype: " + clientLoaderType)
-                                                timestampsArray.push(files[step].timestamp);
-                                            }else if((files[step].minecraft_versions.includes(minecraftVersion) || files[step].minecraft_versions.includes(secondaryMCVersion)) && (files[step].minecraft_versions.includes(capitalizeFirstLetter(clientLoaderType)) || files[step].minecraft_versions.includes(capitalizeFirstLetter(secondaryClientLoaderType)))) {
-                                                console.log("main: " + minecraftVersion)
-                                                console.log("secondary: " + secondaryMCVersion)
-                                                console.log("loadertype: " + clientLoaderType)
-                                                timestampsArray.push(files[step].timestamp);
+                                        for (let step = 0; step < json.data.length; step++) {
+                                            if(modNAME === "mouse-tweaks" && (json.data[step].gameVersions.includes(minecraftVersion) || json.data[step].gameVersions.includes(secondaryMCVersion))) {
+                                                timestampsArray.push(json.data[step].fileDate);
+                                            }else if((json.data[step].gameVersions.includes(minecraftVersion) || json.data[step].gameVersions.includes(secondaryMCVersion)) && (json.data[step].gameVersions.includes(capitalizeFirstLetter(clientLoaderType)) || json.data[step].gameVersions.includes(capitalizeFirstLetter(secondaryClientLoaderType)))) {
+                                                timestampsArray.push(json.data[step].fileDate);
+                                            }
+                                            timestampsArray.sort();
+                                        }
+                                        const finalURL = Object.values(json.data).filter(user => user.fileDate === timestampsArray.at(-1));
+                                        if(finalURL[0].downloadUrl == null) {
+                                            console.log("No file found for " + modNAME);
+                                        } else {
+                                            // console.log(finalURL[0].downloadUrl);
+                                            var urlforfilename;
+                                            // if(modNAME == "better-sodium-video-settings-button") urlforfilename = "https://www.curseforge.com/minecraft/mc-mods/better-sodium-video-settings-button/download/3769487"
+                                            urlforfilename = finalURL[0].downloadUrl;
+                                            var filename = urlforfilename.substring(urlforfilename.lastIndexOf('/')+1);
+                                            
+                                            console.log(filename)
+                                            if (!fs.existsSync(minecraftDirectory + "/mods/"+filename)){
+                                                const downloader = new Downloader({
+                                                    url: finalURL[0].downloadUrl,
+                                                    directory: minecraftDirectory + "/mods",
+                                                    fileName: filename, //This will be the file name.
+                                                    onProgress: function (percentage, chunk, remainingSize) {
+                                                        //Gets called with each chunk.
+                                                        // console.log(filename+" | ", percentage + "%");
+                                                        obj = {
+                                                            type: "modification",
+                                                            task: percentage,
+                                                            total: 100
+                                                        }
+                                                        fs.writeFileSync(process.env.APPDATA + "/warden/progress.json", JSON.stringify(obj));
+                                                        if(!thatThingHappened) {
+                                                            fs.readdir(minecraftDirectory + "/mods", (err, files) => {
+                                                                //fs.existsSync(minecraftDirectory + "/mods/qsl-1.1.0-beta.13_qfapi-1.0.0-beta.16_fapi-0.53.4_mc-1.18.2")
+                                                                if(files.length == tables.length && percentage == 100.00) {
+                                                                    sleep(5000);
+                                                                    thatThingHappened = true;
+                                                                    finalChecks();
+                                                                }
+                                                            });
+                                                        }
+                                                    },
+                                                });
+                                                try {
+                                                    downloader.download();
+                                                } catch (error) {
+                                                    console.log(error);
+                                                }
                                             }
                                         }
-                                        timestampsArray.sort();
-                                        const finalURL = Object.values(files).filter(user => user.timestamp === timestampsArray.at(-1));
-                                        console.log("FINAL URL : "+JSON.stringify(finalURL[0]))
-                                        var urlforfilename = finalURL[0].download_url;
-                                        var filename = urlforfilename.substring(urlforfilename.lastIndexOf('/')+1);
-    
-                                        if (!fs.existsSync(minecraftDirectory + "/mods/"+filename)){
-                                            const downloader = new Downloader({
-                                                url: finalURL[0].download_url,
-                                                directory: minecraftDirectory + "/mods",
-                                                fileName: filename, //This will be the file name.
-                                                onProgress: function (percentage, chunk, remainingSize) {
-                                                    //Gets called with each chunk.
-                                                    console.log(filename+" | ", percentage + "%");
-                                                    obj = {
-                                                        type: "modification",
-                                                        task: percentage,
-                                                        total: 100
-                                                    }
-                                                    fs.writeFileSync(process.env.APPDATA + "/warden/progress.json", JSON.stringify(obj));
-                                                    if(!thatThingHappened) {
-                                                        fs.readdir(minecraftDirectory + "/mods", (err, files) => {
-                                                            //fs.existsSync(minecraftDirectory + "/mods/qsl-1.1.0-beta.13_qfapi-1.0.0-beta.16_fapi-0.53.4_mc-1.18.2")
-                                                            if(files.length == tables.length && percentage == 100.00) {
-                                                                sleep(5000);
-                                                                thatThingHappened = true;
-                                                                finalChecks();
-                                                            }
-                                                        });
-                                                    }
-                                                },
-                                            });
-                                            try {
-                                                downloader.download();
-                                            } catch (error) {
-                                                console.log(error);
-                                            }
-                                        }
-                                        
                                     });
                                 }
                                 else {
@@ -255,10 +277,11 @@ function modUpdateCheck() {
                                 }
                             });
                             fs.readdir(minecraftDirectory + "/mods", (err, files) => {
+                                console.log(tables.length)
                                 if(files.length == tables.length) {
                                     finalChecks();
                                 } else {
-                                    console.log(files.length)
+                                    console.log(files.length + " mods installed" );
                                 }
                             });
                         } else {
@@ -659,7 +682,7 @@ function continueToStart() {
 
             if(fs.existsSync(minecraftDirectory+"/config/CustomMainMenu")) {
                 if(fs.existsSync(minecraftDirectory+"/config/CustomMainMenu/mainmenu.json")) {
-                    fs.writeFileSync(minecraftDirectory+"/config/CustomMainMenu/mainmenu.json");
+                    fs.writeFileSync(minecraftDirectory+"/config/CustomMainMenu/mainmenu.json", "");
                 } else {
                     fs.writeFileSync(minecraftDirectory+"/config/CustomMainMenu/mainmenu.json", '{"images":{"title":{"image":"warden:textures/ne.png","posX":-129,"posY":-70,"width":256,"height":260,"alignment":"top_center"}},"buttons":{"singleplayer":{"text":"menu.singleplayer","posX":-100,"posY":48,"width":200,"height":20,"texture":"warden:textures/Button.png","action":{"type":"openGui","gui":"singleplayer"}},"multiplayer":{"text":"menu.multiplayer","posX":-100,"posY":72,"width":200,"height":20,"texture":"warden:textures/Button.png","action":{"type":"openGui","gui":"multiplayer"}},"discord":{"text":"Discord","posX":-100,"posY":107,"width":98,"height":20,"texture":"warden:textures/Short-Button.png","action":{"type":"openLink","link":"https://discord.gg/aATgMp2A"}},"website":{"text":"Website","posX":2,"posY":107,"width":98,"height":20,"texture":"warden:textures/Short-Button.png","action":{"type":"openLink","link":"https://wardenmc.com"}},"options":{"text":"menu.options","posX":-100,"posY":132,"width":98,"height":20,"texture":"warden:textures/Short-Button.png","action":{"type":"openGui","gui":"options"}},"quit":{"text":"menu.quit","posX":2,"posY":132,"width":98,"height":20,"texture":"warden:textures/Short-Button.png","action":{"type":"quit"}}},"labels":{"mojang":{"text":"Copyright Mojang AB. Do not distribute!","posX":-197,"posY":-10,"color":-1,"alignment":"bottom_right"},"version":{"text":"1.8.9","posX":2,"posY":-20,"color":-1,"alignment":"bottom_left"},"warden":{"text":"Super powered by WardenMC","posX":2,"posY":-10,"color":-1,"alignment":"bottom_left"}},"other":{"background":{"image":"warden:textures/background.png","mode":"fill"}}}');
                 }
@@ -726,9 +749,18 @@ function continueToStart() {
     } else if(clientLoaderType === "fabric") {
         if (!fs.existsSync(minecraftDirectory+"/versions/" + assembler+"/"+assembler+".json")){
             const file = fs.createWriteStream(minecraftDirectory+"/versions/" + assembler+"/"+assembler+".json");
-            if(clientLoaderType === "fabric" && minecraftVersion === "1.19") {
-                file.write('{"id":"fabric-loader-0.14.6-1.19","inheritsFrom":"1.19","releaseTime":"2022-06-07T15:10:13+0000","time":"2022-06-07T15:10:13+0000","type":"release","mainClass":"net.fabricmc.loader.impl.launch.knot.KnotClient","arguments":{"game":[],"jvm":["-DFabricMcEmu= net.minecraft.client.main.Main "]},"libraries":[{"name":"net.fabricmc:tiny-mappings-parser:0.3.0+build.17","url":"https://maven.fabricmc.net/"},{"name":"net.fabricmc:sponge-mixin:0.11.4+mixin.0.8.5","url":"https://maven.fabricmc.net/"},{"name":"net.fabricmc:tiny-remapper:0.8.2","url":"https://maven.fabricmc.net/"},{"name":"net.fabricmc:access-widener:2.1.0","url":"https://maven.fabricmc.net/"},{"name":"org.ow2.asm:asm:9.3","url":"https://maven.fabricmc.net/"},{"name":"org.ow2.asm:asm-analysis:9.3","url":"https://maven.fabricmc.net/"},{"name":"org.ow2.asm:asm-commons:9.3","url":"https://maven.fabricmc.net/"},{"name":"org.ow2.asm:asm-tree:9.3","url":"https://maven.fabricmc.net/"},{"name":"org.ow2.asm:asm-util:9.3","url":"https://maven.fabricmc.net/"},{"name":"net.fabricmc:intermediary:1.19","url":"https://maven.fabricmc.net/"},{"name":"net.fabricmc:fabric-loader:0.14.6","url":"https://maven.fabricmc.net/"}]}', 'utf8')
-            }
+            //https://meta.fabricmc.net/v2/versions/loader/22w42a/0.14.10/profile/json
+            fetch(`https://meta.fabricmc.net/v2/versions/loader/${minecraftVersion}/${loaderVersion}/profile/json`)
+            .then(res => res.json())
+            .then(json => {
+                file.write(JSON.stringify(json), 'utf8');
+            });
+
+            // if(clientLoaderType === "fabric" && minecraftVersion === "1.19") {
+            //     file.write('{"id":"fabric-loader-0.14.6-1.19","inheritsFrom":"1.19","releaseTime":"2022-06-07T15:10:13+0000","time":"2022-06-07T15:10:13+0000","type":"release","mainClass":"net.fabricmc.loader.impl.launch.knot.KnotClient","arguments":{"game":[],"jvm":["-DFabricMcEmu= net.minecraft.client.main.Main "]},"libraries":[{"name":"net.fabricmc:tiny-mappings-parser:0.3.0+build.17","url":"https://maven.fabricmc.net/"},{"name":"net.fabricmc:sponge-mixin:0.11.4+mixin.0.8.5","url":"https://maven.fabricmc.net/"},{"name":"net.fabricmc:tiny-remapper:0.8.2","url":"https://maven.fabricmc.net/"},{"name":"net.fabricmc:access-widener:2.1.0","url":"https://maven.fabricmc.net/"},{"name":"org.ow2.asm:asm:9.3","url":"https://maven.fabricmc.net/"},{"name":"org.ow2.asm:asm-analysis:9.3","url":"https://maven.fabricmc.net/"},{"name":"org.ow2.asm:asm-commons:9.3","url":"https://maven.fabricmc.net/"},{"name":"org.ow2.asm:asm-tree:9.3","url":"https://maven.fabricmc.net/"},{"name":"org.ow2.asm:asm-util:9.3","url":"https://maven.fabricmc.net/"},{"name":"net.fabricmc:intermediary:1.19","url":"https://maven.fabricmc.net/"},{"name":"net.fabricmc:fabric-loader:0.14.6","url":"https://maven.fabricmc.net/"}]}', 'utf8')
+            // } else if(clientLoaderType === "fabric" && minecraftVersion === "22w42a"){
+            //     file.write('{"id":"fabric-loader-0.14.10-22w42a","inheritsFrom":"22w42a","releaseTime":"2022-10-19T22:51:07+0000","time":"2022-10-19T22:51:07+0000","type":"release","mainClass":"net.fabricmc.loader.impl.launch.knot.KnotClient","arguments":{"game":[],"jvm":["-DFabricMcEmu= net.minecraft.client.main.Main "]},"libraries":[{"name":"net.fabricmc:tiny-mappings-parser:0.3.0+build.17","url":"https://maven.fabricmc.net/"},{"name":"net.fabricmc:sponge-mixin:0.11.4+mixin.0.8.5","url":"https://maven.fabricmc.net/"},{"name":"net.fabricmc:tiny-remapper:0.8.2","url":"https://maven.fabricmc.net/"},{"name":"net.fabricmc:access-widener:2.1.0","url":"https://maven.fabricmc.net/"},{"name":"org.ow2.asm:asm:9.3","url":"https://maven.fabricmc.net/"},{"name":"org.ow2.asm:asm-analysis:9.3","url":"https://maven.fabricmc.net/"},{"name":"org.ow2.asm:asm-commons:9.3","url":"https://maven.fabricmc.net/"},{"name":"org.ow2.asm:asm-tree:9.3","url":"https://maven.fabricmc.net/"},{"name":"org.ow2.asm:asm-util:9.3","url":"https://maven.fabricmc.net/"},{"name":"net.fabricmc:intermediary:22w42a","url":"https://maven.fabricmc.net/"},{"name":"net.fabricmc:fabric-loader:0.14.10","url":"https://maven.fabricmc.net/"}]}', 'utf8')
+            // }
         }
     }
     launcher.launch(finalOpts);

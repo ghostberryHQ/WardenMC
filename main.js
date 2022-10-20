@@ -80,6 +80,7 @@ function handleSquirrelEvent() {
       resizable: false,
       autoHideMenuBar: true,
       webPreferences: {
+        enableRemoteModule: true,
         nodeIntegration: true,
         contextIsolation: false,
         //devTools: false
@@ -90,6 +91,7 @@ function handleSquirrelEvent() {
     } else {
       win.loadFile('index.html')
     }
+    process.env.MAIN_WINDOW_ID = win.id;
   }
 
   
