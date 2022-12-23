@@ -5,10 +5,11 @@ const launcher = new Client();
 const msmc = require("msmc");
 const fs = require('fs');
 const fetch = require('node-fetch');
-const curseforge = require("mc-curseforge-api");
 const {Modrinth} = require("modrinth")
+var AdmZip = require("adm-zip");
 const fsExtra = require('fs-extra');
 const file = require('fs-extra/lib/ensure/file');
+const { app } = require('electron');
 var minecraftVersion;
 var secondaryMCVersion;
 var clientLoaderType;
@@ -33,19 +34,6 @@ loaderVersion = argy[4]
 javaEdition = argy[5]
 console.log(minecraftVersion + " : " + loaderVersion);
 
-// if(minecraft_version === "1.18.2") {
-//     quilt_loader_version = "0.17.0-beta.2"
-//     clientLoaderType = "fabric"
-//     secondaryMCVersion = "1.18.1"
-//     secondaryClientLoaderType = "quilt"
-//     console.log(minecraft_version + " : " + quilt_loader_version);
-// } else if(minecraft_version === "1.8.9") {
-//     forge_loader_version = "11.15.1.2318"
-//     clientLoaderType = "forge"
-//     secondaryMCVersion = "1.8.9"
-//     secondaryClientLoaderType = "forge"
-//     console.log(minecraft_version + " : " + forge_loader_version);
-// }
 const modrinth = new Modrinth({
     authorization: "" 
 });
@@ -208,6 +196,39 @@ function modUpdateCheck() {
                                         console.log(err);
                                     });
     
+                                } else if(modSITE == "persnAPI") {
+                                    var urlToDownloadMod = modID;
+                                    if (!fs.existsSync(minecraftDirectory + "/mods/"+modNAME+".jar")) {
+                                        const downloader = new Downloader({
+                                            url: urlToDownloadMod,
+                                            directory: minecraftDirectory + "/mods",
+                                            fileName: modNAME+".jar", //This will be the file name.
+                                            onProgress: function (percentage, chunk, remainingSize) {
+                                                //Gets called with each chunk.
+                                                // console.log(finalURL[0].files[0].filename+" | ", percentage + "%");
+                                                obj = {
+                                                    type: "modification",
+                                                    task: percentage,
+                                                    total: 100
+                                                }
+                                                fs.writeFileSync(process.env.APPDATA + "/warden/progress.json", JSON.stringify(obj));
+                                                if(!thatThingHappened) {
+                                                    fs.readdir(minecraftDirectory + "/mods", (err, files) => {
+                                                        if(files.length == tables.length && percentage == 100.00) {
+                                                            sleep(5000);
+                                                            thatThingHappened = true;
+                                                            finalChecks();
+                                                        }
+                                                    });
+                                                }
+                                            },
+                                        });
+                                        try {
+                                            downloader.download();
+                                        } catch (error) {
+                                            console.log(error);
+                                        }
+                                    }
                                 }
                                 else if (modSITE == "curseforge") {
                                     function capitalizeFirstLetter(string) {
@@ -305,56 +326,39 @@ function finalChecks() {
     }
 
     if(javaEdition === "Legacy") {
-        if(!fs.existsSync(process.env.APPDATA + "/warden/java/legacy")) {
-            fs.mkdirSync(process.env.APPDATA + "/warden/java/legacy");
-        }
-        setTimeout(function(){
-            if(!fs.existsSync(process.env.APPDATA + "/warden/java/legacy/java.exe")) {
-                console.log("doesnt have")
-                const downloader = new Downloader({
-                    url: "https://launcher.mojang.com/v1/objects/e69bffb8015f7f6d2593a357141a153208de53a0/java.exe",
-                    directory: process.env.APPDATA + "/warden/java/legacy",
-                    fileName: "java.exe", //This will be the file name.
-                    onProgress: function (percentage, chunk, remainingSize) {
-                        //Gets called with each chunk.
-                        console.log("java | ", percentage + "%");
-                        obj = {
-                            type: "java",
-                            task: percentage,
-                            total: 100
-                        }
-                        fs.writeFileSync(process.env.APPDATA + "/warden/progress.json", JSON.stringify(obj));
-                        if(percentage == 100.00) {
-                            modUpdateCheck();
-                        }
-                    },
-                });
-                try {
-                    downloader.download();
-                } catch (error) {
-                    console.log(error);
-                }
-            } else {
-                console.log("has")
-                afterJava()
+        if(!fs.existsSync(process.env.APPDATA + "/warden/java/copper")) {
+            fs.mkdirSync(process.env.APPDATA + "/warden/java/copper");
+            console.log("doesnt have")
+            const downloader = new Downloader({
+                url: "https://github.com/adoptium/temurin8-binaries/releases/download/jdk8u352-b08/OpenJDK8U-jdk_x64_windows_hotspot_8u352b08.zip",
+                directory: process.env.APPDATA + "/warden/java/copper",
+                fileName: "OpenJDK8U-jdk.zip", //This will be the file name.
+                onProgress: function (percentage, chunk, remainingSize) {
+                    //Gets called with each chunk.
+                    console.log("javaLegacy | ", percentage + "%");
+                    obj = {
+                        type: "java",
+                        task: percentage,
+                        total: 100
+                    }
+                    fs.writeFileSync(process.env.APPDATA + "/warden/progress.json", JSON.stringify(obj));
+                    if(percentage == 100.00) {
+                        setTimeout(function(){
+                            afterJava();
+                        }, 5000);
+                    }
+                },
+            });
+            try {
+                downloader.download();
+            } catch (error) {
+                console.log(error);
             }
-        },1000);
+        } else {
+            console.log("has")
+            afterJava()
+        }
     } else {
-        if(!fs.existsSync(process.env.APPDATA + "/warden/java/latest")) {
-            fs.mkdirSync(process.env.APPDATA + "/warden/java/latest");
-        }
-        if(!fs.existsSync(process.env.APPDATA + "/warden/java/bin")) {
-            fs.mkdirSync(process.env.APPDATA + "/warden/java/bin");
-        }
-        if(!fs.existsSync(process.env.APPDATA + "/warden/java/bin")) {
-            fs.mkdirSync(process.env.APPDATA + "/warden/java/bin");
-        }
-        if(!fs.existsSync(process.env.APPDATA + "/warden/java/bin/server")) {
-            fs.mkdirSync(process.env.APPDATA + "/warden/java/bin/server");
-        }
-        if(!fs.existsSync(process.env.APPDATA + "/warden/java/lib")) {
-            fs.mkdirSync(process.env.APPDATA + "/warden/java/lib");
-        }
         afterJava();
     }
 }
@@ -362,11 +366,9 @@ function finalChecks() {
 function afterJava() {
     console.log("here : " + clientLoaderType);
     if(clientLoaderType === "forge") {
-
         if(!fs.existsSync(minecraftDirectory + "/config")) {
             fs.mkdirSync(minecraftDirectory + "/config");
         }
-
         if(!fs.existsSync(minecraftDirectory + "/config/customwindowtitle-client.toml")) {
             try {
                 fs.writeFileSync(minecraftDirectory + "/config/customwindowtitle-client.toml", 'title = "WardenMC | {mcversion}"');
@@ -377,10 +379,92 @@ function afterJava() {
         if(!fs.existsSync(process.env.APPDATA + "/warden/java/")) {
             fs.mkdirSync(process.env.APPDATA + "/warden/java/");
         }
-        setupForge();
+        if(fs.existsSync(`${process.env.APPDATA}/warden/java/copper/OpenJDK8U-jdk.zip`)) {
+            unzipOldJava();
+        } else {
+            setupForge();
+        }
     } else if(clientLoaderType === "quilt" || clientLoaderType === "fabric" || clientLoaderType === "vanilla") {
+        console.log("setting up new Java")
+        setupNewJava();
+    }
+}
+
+
+function setupNewJava() {
+    console.log("got to the setup")
+    if(!fs.existsSync(`${process.env.APPDATA}/warden/java/gamma`)) {
+        fs.mkdirSync(`${process.env.APPDATA}/warden/java/gamma`);
+        const downloader = new Downloader({
+            url: "https://download.oracle.com/java/19/latest/jdk-19_windows-x64_bin.zip",
+            directory: `${process.env.APPDATA}/warden/java/gamma`,
+            fileName: "jdk-19_windows-x64_bin.zip", //This will be the file name.
+            onProgress: function (percentage, chunk, remainingSize) {
+                //Gets called with each chunk.
+                console.log("javanew | ", percentage + "%");
+                obj = {
+                    type: "javaNew",
+                    task: percentage,
+                    total: 100
+                }
+                fs.writeFileSync(process.env.APPDATA + "/warden/progress.json", JSON.stringify(obj));
+                if(percentage == 100.00) {
+                    //timeout
+                    setTimeout(function(){
+                        unzipJava();
+                    }, 5000);                
+                }
+            }
+        })
+        try {
+            downloader.download();
+        } catch (error) {
+            console.log(error);
+        }
+    } else {
         continueToStart();
     }
+}
+
+function unzipOldJava() {
+    //unzip
+    console.log("unzipping")
+    try {
+        const zip = new AdmZip(`${process.env.APPDATA}/warden/java/copper/OpenJDK8U-jdk.zip`);
+        zip.extractAllToAsync(`${process.env.APPDATA}/warden/java/copper/`, true, true, unZippedOld)
+    } catch (error) {
+        console.error(error.stack)
+        console.error("Zipping failed. Reason: %s", error)
+        throw new Error(error.message)
+    }
+}
+function unZippedOld() {
+    console.log("unzipped")
+    fs.unlinkSync(`${process.env.APPDATA}/warden/java/copper/OpenJDK8U-jdk.zip`);
+    setTimeout(function(){
+        setupForge(); 
+    }, 5000);
+}
+
+function unzipJava() {
+    //unzip
+    console.log("unzipping")
+    try {
+        const zip = new AdmZip(`${process.env.APPDATA}/warden/java/gamma/jdk-19_windows-x64_bin.zip`);
+        zip.extractAllToAsync(`${process.env.APPDATA}/warden/java/gamma/`, true, true, unZipped)
+    } catch (error) {
+        console.error(error.stack)
+        console.error("Zipping failed. Reason: %s", error)
+        throw new Error(error.message)
+    }
+}
+
+function unZipped() {
+    console.log("unzipped")
+    fs.unlinkSync(`${process.env.APPDATA}/warden/java/gamma/jdk-19_windows-x64_bin.zip`);
+    setTimeout(function(){
+        continueToStart(); 
+    }, 5000);
 }
 
 
@@ -496,9 +580,9 @@ function continueToStart() {
     var assembler;
 
 
-    console.log("FINAL: "+JSON.stringify(parsedAuthProfile));
-    console.log("FINAL ACCESS: "+parsedAuthProfile.access_token);
-    console.log("FINAL CLIENT: "+parsedAuthProfile.client_token);
+    // console.log("FINAL: "+JSON.stringify(parsedAuthProfile));
+    // console.log("FINAL ACCESS: "+parsedAuthProfile.access_token);
+    // console.log("FINAL CLIENT: "+parsedAuthProfile.client_token);
 
 
     let opts;
@@ -514,7 +598,7 @@ function continueToStart() {
                 user_properties: '{}',
             },
             root: minecraftDirectory,
-            javaPath: process.env.APPDATA+"/warden/java/legacy/java.exe",
+            javaPath: process.env.APPDATA+"\\warden\\java\\copper\\jdk8u352-b08\\bin\\java.exe",
             forge: process.env.APPDATA + "/warden/forge/"+"forge-"+minecraftVersion+"-"+loaderVersion+"-"+minecraftVersion+"-universal.jar",
             version: {
                 number: minecraftVersion,
@@ -537,7 +621,7 @@ function continueToStart() {
                 user_properties: '{}',
             },
             root: minecraftDirectory,
-            javaPath: process.env.APPDATA+"/warden/java/legacy/java.exe",
+            javaPath: process.env.APPDATA+"\\warden\\java\\copper\\jdk8u352-b08\\bin\\java.exe",
             forge: process.env.APPDATA + "/warden/forge/"+"forge-"+minecraftVersion+"-"+loaderVersion+"-universal.jar",
             version: {
                 number: minecraftVersion,
@@ -559,7 +643,7 @@ function continueToStart() {
                 user_properties: '{}',
             },
             root: minecraftDirectory,
-            javaPath: "C:/Program Files (x86)/Minecraft Launcher/runtime/java-runtime-beta/windows-x64/java-runtime-beta/bin/java.exe",
+            javaPath: `${process.env.APPDATA}\\warden\\java\\gamma\\jdk-19.0.1\\bin\\java.exe`,
             forge: process.env.APPDATA + "/warden/forge/"+"forge-"+minecraftVersion+"-"+loaderVersion+"-"+minecraftVersion+"-installer.jar",
             version: {
                 number: minecraftVersion,
@@ -581,7 +665,7 @@ function continueToStart() {
                 user_properties: '{}',
             },
             root: minecraftDirectory,
-            javaPath: "C:/Program Files (x86)/Minecraft Launcher/runtime/java-runtime-gamma/windows-x64/java-runtime-gamma/bin/java.exe",
+            javaPath: `${process.env.APPDATA}\\warden\\java\\gamma\\jdk-19.0.1\\bin\\java.exe`,
             version: {
                 number: minecraftVersion,
                 type: "release",
@@ -603,7 +687,7 @@ function continueToStart() {
                 user_properties: '{}',
             },
             root: minecraftDirectory,
-            javaPath: "C:/Program Files (x86)/Minecraft Launcher/runtime/java-runtime-gamma/windows-x64/java-runtime-gamma/bin/java.exe",
+            javaPath: `${process.env.APPDATA}\\warden\\java\\gamma\\jdk-19.0.1\\bin\\java.exe`,
             version: {
                 number: minecraftVersion,
                 type: "release",
@@ -625,7 +709,7 @@ function continueToStart() {
                 user_properties: '{}',
             },
             root: minecraftDirectory,
-            javaPath: "C:/Program Files (x86)/Minecraft Launcher/runtime/java-runtime-gamma/windows-x64/java-runtime-gamma/bin/java.exe",
+            javaPath: `${process.env.APPDATA}\\warden\\java\\gamma\\jdk-19.0.1\\bin\\java.exe`,
             version: {
                 number: minecraftVersion,
                 type: "release"
@@ -771,4 +855,13 @@ function continueToStart() {
     });
     launcher.on('debug', (e) => console.log(e));
     launcher.on('data', (e) => console.log(e));
+
+    //when launched
+    launcher.on('close', (e) => {
+        console.log("MC CLOSED. IDK IF IT WAS A CRASH OR NOT. ILL FIGURE THAT OUT LATER")
+    });
+
+    launcher.on('arguments', (e) => {
+        console.log("HERE IS WHERE WE SHOULD CLOSE THE APP BUT IDK HOW TO DO THAT RN SO ITS GONNA BE IN v0.7.0")
+    });
 }

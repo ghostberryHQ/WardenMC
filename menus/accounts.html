@@ -5,6 +5,7 @@
     <link rel="stylesheet" href="../circles_play.css">
     <link rel="stylesheet" href="./profiles.css">
     <script src="../main.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" integrity="sha512-MV7K8+y+gLIBoVD59lQIYicR65iaqukzvf/nwasF0nqhPay5w/9lJmVM2hMDcnK1OnMGCdVK+iQrJ7lzPJQd1w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <meta charset="UTF-8">
     <title>Warden</title>
   </head>
@@ -139,27 +140,32 @@ function showToast(text){
   <ul class="wui-side-menu-items">
     <li>
       <a href="../play.html" class="wui-side-menu-item">
-        <b><span class="box-title">Play</span></b>
+        <b><span class="box-title"><i style="margin-right:5px;" class="fa-solid fa-gamepad"></i>Play</span></b>
       </a>
     </li>
     <li>
       <a id="friendsTab" href="./friends.html?uuid=" class="wui-side-menu-item">
-        <b><span class="box-title">Friends</span></b>
+        <b><span class="box-title"><i style="margin-right:5px;" class="fa-solid fa-user-group"></i>Friends</span></b>
       </a>
     </li>
     <li>
-      <a href="#" class="wui-side-menu-item active">
-        <b><span class="box-title">Accounts</span></b>
+      <a id="accountsTab" href="./accounts.html?uuid=" class="wui-side-menu-item active">
+        <b><span class="box-title"><i style="margin-right:5px;" class="fa-solid fa-person"></i>Accounts</span></b>
+      </a>
+    </li>
+    <li>
+      <a id="cosmeticsTab" href="#" class="wui-side-menu-item">
+        <b><span class="box-title"><i style="margin-right:5px;" class="fa-solid fa-shirt"></i>Cosmetics</span></b>
       </a>
     </li>
     <li>
       <a href="#" class="wui-side-menu-item" onclick="showToast('Coming Soon!');">
-        <b><span class="box-title">Settings</span></b>
+        <b><span class="box-title"><i style="margin-right:5px;" class="fa-solid fa-gear"></i>Settings</span></b>
       </a>
     </li>
     <li>
       <a href="#" class="wui-side-menu-item" style="bottom:0; position:absolute;" onclick="signOut();">
-        <b><span class="box-title">Sign Out</span></b>
+        <b><span class="box-title"><i style="margin-right:5px;" class="fa-solid fa-right-from-bracket"></i>Sign Out</span></b>
       </a>
     </li>
   </ul>
@@ -197,6 +203,7 @@ function showToast(text){
 
     //get element by id
     document.getElementById("friendsTab").href = "./friends.html?uuid=" + uuid;
+    document.getElementById("cosmeticsTab").href = "./cosmetics.html?uuid=" + uuid;
 
   </script>
 </html>

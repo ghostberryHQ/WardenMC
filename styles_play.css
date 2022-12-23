@@ -3,7 +3,7 @@
     position:fixed;
     top:0;
     left:0;
-    width:220px;
+    width:170px;
     height:100%;
     backface-visibility:hidden;
     z-index:3;
@@ -59,6 +59,7 @@
   /* demo */
   body {
       margin:0; font-family:'Rubik', sans-serif; font-weight:100; background-color:#1F1F1F;
+      overflow-y: hidden;
     }
   *, *:after, *:before {
       -webkit-box-sizing: border-box;-moz-box-sizing: border-box;box-sizing: border-box;
@@ -264,4 +265,11 @@
   color: #000;
   text-decoration: none;
   cursor: pointer;
+}
+
+
+#McProgress {
+  left: 26.9%;
+  position:absolute;
+  width:50%;
 }

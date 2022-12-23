@@ -3,6 +3,7 @@
   <head>
     <link rel="stylesheet" href="../styles_play.css">
     <link rel="stylesheet" href="../circles_play.css">
+    <link rel="stylesheet" href="./profiles.css">
     <script src="../main.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" integrity="sha512-MV7K8+y+gLIBoVD59lQIYicR65iaqukzvf/nwasF0nqhPay5w/9lJmVM2hMDcnK1OnMGCdVK+iQrJ7lzPJQd1w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <meta charset="UTF-8">
@@ -91,25 +92,13 @@
 })(window);
 
 
-var documentReady = function (fn) {
-  if (document.readyState != 'loading') {
-    fn();
-  } else {
-    document.addEventListener('DOMContentLoaded', fn);
-  }
-};
+document.addEventListener('DOMContentLoaded',pageLoaded);
 
-documentReady(function() {
-  var sample = new SideMenu(document.querySelector('.wui-side-menu'))
-  sample.htmlElement.addEventListener('menuPinStateChanged', function(e) {
-    document.querySelector('#events').innerHTML += 'menuPinStateChanged , menu pinned? => ' 
-      + e.detail.pinned + '<br>'; 
-  }, false);
-  sample.htmlElement.addEventListener('menuStateChanged', function(e) {
-    document.querySelector('#events').innerHTML += 'menuStateChanged , menu open? => ' 
-      + e.detail.open + '<br>'; 
-  }, false);
-});
+
+function pageLoaded(){
+
+  console.log("ready")
+}
 
 function showToast(text){
         var isShowing = false;
@@ -124,40 +113,6 @@ function showToast(text){
         },3000);
         }
       }
-
-window.onload = () => {
-    //get url perameters
-    var urlParams = new URLSearchParams(window.location.search);
-    var username = urlParams.get('uuid');
-
-
-    console.log(username);
-    fetch (`https://api.persn.dev/warden/getFriends/${username}`)
-    .then(response => response.json())
-    .then(data => {
-      if(data.error === "User not found.") {
-        document.getElementById("noFriendsMessage").style.display = 'block';
-      } else{
-        document.getElementById("noFriendsMessage").style.display = 'none';
-        var friends = data.friends;
-        var friendList = document.getElementById("friendsList");
-        if(friends.length == 0){
-          friendList.innerHTML = "You have no friends";
-        } else {
-          for (var i = 0; i < friends.length; i++) {
-            var friendElement = document.createElement("li");
-            friendElement.className = "friend";
-            fetch("https://api.mojang.com/user/profile/" + friends[i].uuid)
-            .then(response => response.json())
-            .then(data => {
-              friendElement.innerHTML = data.name;
-            });
-            friendList.appendChild(friendElement);
-          }
-        }
-      }
-    });
-  }
 </script>
 
 <div class="wui-side-menu open pinned" data-wui-theme="dark">    
@@ -168,7 +123,7 @@ window.onload = () => {
       </a>
     </li>
     <li>
-      <a id="friendsTab" href="./friends.html?uuid=" class="wui-side-menu-item active">
+      <a id="friendsTab" href="./friends.html?uuid=" class="wui-side-menu-item">
         <b><span class="box-title"><i style="margin-right:5px;" class="fa-solid fa-user-group"></i>Friends</span></b>
       </a>
     </li>
@@ -178,7 +133,7 @@ window.onload = () => {
       </a>
     </li>
     <li>
-      <a id="cosmeticsTab" href="#" class="wui-side-menu-item">
+      <a id="cosmeticsTab" href="#" class="wui-side-menu-item active">
         <b><span class="box-title"><i style="margin-right:5px;" class="fa-solid fa-shirt"></i>Cosmetics</span></b>
       </a>
     </li>
@@ -200,45 +155,9 @@ window.onload = () => {
   </div> 
   <div class="wui-content-main">
     <center>
-
-      <style>
-          li:hover {
-            background-color: #595b59;
-            border-radius:5%;
-          }
-          .friend {
-            list-style-type: none;
-            padding: 10px;
-            margin-left: 0;
-            border-radius:5%;
-            text-align: left;
-          }
-          .inviteButton {
-            float: right;
-            background-color: #5cb85c;
-            border: none;
-            color: white;
-            text-decoration: none;
-            font-size: 16px;
-            cursor: pointer;
-            border-radius: 3px;
-          }
-          .inviteButton:hover {
-            background-color: #4a934a;
-          }
-
-      </style>
-      <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
-      <h1>Friends</h1>
-      <h3 id="noFriendsMessage" style="position:absolute; bottom:50%; left:28%; opacity: 60%;">You currently have no friends</h3>
-      
-      <div id="friendsList" style="position:absolute; bottom:10%; left:15%; background-color:#4c4c4c; border-radius:5%; width:400px; height:400px; opacity: 60%;">
-        <br>
-        <!-- <li class="friend">MrMrGamer <button class="inviteButton">Invite</button></li>
-        <li class="friend">ThisIsntAFakePerson <button class="inviteButton">Invite</button></li> -->
-      </div>
-      <ul id="myUl"></ul>
-      </div>
+      <h1>Cosmetics</h1>
+      <br>
+      <h2 style="opacity:50%;">It seems like you dont have any cosmetics.</h2>
     </center>
     <div id="events"></div>
     <div id="toast"></div>
@@ -248,9 +167,12 @@ window.onload = () => {
 
 
   <script>
+    //get url parameter uuid
     var urlParams = new URLSearchParams(window.location.search);
     var uuid = urlParams.get('uuid');
+    //get element by id
+    document.getElementById("friendsTab").href = "./friends.html?uuid=" + uuid;
     document.getElementById("accountsTab").href = "./accounts.html?uuid=" + uuid;
-    document.getElementById("cosmeticsTab").href = "./cosmetics.html?uuid=" + uuid;
+
   </script>
 </html>

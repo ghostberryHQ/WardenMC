@@ -65,7 +65,7 @@
     <h2>A simple and modern Minecraft client.</h2>
     <br>
 
-    <div class="input-box">
+    <!-- <div class="input-box">
         <input type="text" name="" id="usernameInput" required />
         <label for="">Username</label>
     </div>
@@ -76,11 +76,16 @@
     <br>
     <div class="container">
       <div class="button" id="mojanglogin" onclick="showToast('Logging into Mojang account'); startMoLP();">Login</div>
+    </div> -->
+    <div style="opacity:50%; border: #fff 2px solid; border-radius: 15px; padding:10px">
+      <h4>As of <u>March 10th, 2022</u> you can no longer use a Mojang account to play Minecraft.</h4>
+      <h4 style="margin-top:-15px">As a result, WardenMC is no longer supporting login for it.</h4>
+      <h4 style="margin-top:-5px">If you relied on a Mojang account to login to Minecraft please migrate to a Microsoft account</h4>
     </div>
-    <div class="container">
-        <div class="button" id="microsoftlogin" onclick="showToast('Launching Microsoft login portal'); startMiLP();">Microsoft Account</div>
+    <div class="container" style="margin-top:100px">
+        <div class="button" id="microsoftlogin" onclick="showToast('Launching Microsoft login portal'); startMiLP();">Login</div>
     </div>
-    <h4 style="position:absolute; bottom: 10px; margin-left: auto; margin-right: auto; left: 0; right: 0;">Closed alpha v0.5.0</h4>
+    <h4 style="position:absolute; bottom: 10px; margin-left: auto; margin-right: auto; left: 0; right: 0;">Alpha v0.6.0</h4>
     <div id="toast"></div>
     </center>
   </div>

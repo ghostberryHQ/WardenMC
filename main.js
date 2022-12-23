@@ -117,10 +117,10 @@ ipcMain.on('startGame', (event, arg) => {
   if(!fs.existsSync(process.env.APPDATA + "/warden/auth/auth.json") && !fs.existsSync(process.env.APPDATA + "/warden/auth/auth_profile.json")) {
     app.quit();
   }
+  fs.writeFileSync(process.env.APPDATA + "/warden/ugh2.json", path.join(__dirname, "WardenNew/run_account.js"));
 
   var MinecraftArgs = [arg.minecraftEverything];
   var cp = childProcess.fork(path.join(__dirname, "WardenNew/run_account.js"), MinecraftArgs);
-  //var cp = childProcess.fork(path.join(__dirname, "WardenNew/40_run.js"));
   cp.on("exit", function (code, signal) {
     console.log("Exited", {code: code, signal: signal});
   });
