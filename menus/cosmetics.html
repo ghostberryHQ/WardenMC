@@ -3,7 +3,8 @@
   <head>
     <link rel="stylesheet" href="../styles_play.css">
     <link rel="stylesheet" href="../circles_play.css">
-    <link rel="stylesheet" href="./profiles.css">
+    <!-- <link rel="stylesheet" href="./profiles.css"> -->
+    <link rel="stylesheet" href="./cosmetics.css">
     <script src="../main.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" integrity="sha512-MV7K8+y+gLIBoVD59lQIYicR65iaqukzvf/nwasF0nqhPay5w/9lJmVM2hMDcnK1OnMGCdVK+iQrJ7lzPJQd1w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <meta charset="UTF-8">
@@ -91,14 +92,38 @@
     window.SideMenu = sideMenu;
 })(window);
 
+var urlParams2 = new URLSearchParams(window.location.search);
+var uuid2 = urlParams2.get('uuid');
 
 document.addEventListener('DOMContentLoaded',pageLoaded);
-
-
 function pageLoaded(){
-
   console.log("ready")
+  fetch(`https://api.persn.dev/warden/getUserCosmetics/${uuid2}`, {method: 'GET'})
+  .then(function(res) { return res.json(); })
+  .then(function(body){
+      //loop through array of cosmetics
+      var capeCollection = document.getElementById("capeCollection");
+      if(body.length === 0) capeCollection.innerHTML = "No capes found";
+      for (var i = 0; i < body.length; i++) {
+        var cosmeticType = body[i].cosmeticType;
+        var applied = body[i].applied;
+        console.log(body[i])
+        console.log(`https://api.persn.dev/warden/getCape/${body[i].cosmeticName}/png`)
+        if(cosmeticType === "cape") {
+          //make a new img and add it to the cape collection
+          var newCape = document.createElement("img");
+          newCape.classList.add("cape");
+          newCape.setAttribute("crossorigin", "anonymous");
+          newCape.src = `https://api.persn.dev/warden/getCape/${body[i].cosmeticName}/front`;
+          if(applied === "1") newCape.classList.add("selectedCape");
+          capeCollection.appendChild(newCape);
+        }
+      }
+  })
 }
+
+
+
 
 function showToast(text){
         var isShowing = false;
@@ -156,8 +181,10 @@ function showToast(text){
   <div class="wui-content-main">
     <center>
       <h1>Cosmetics</h1>
-      <br>
-      <h2 style="opacity:50%;">It seems like you dont have any cosmetics.</h2>
+      <h2 style="opacity:50%;margin-top:25px">Capes</h2>
+      <div id="capeCollection" style="background-color:#4c4c4c; border-radius: 15px; padding:20px; width:fit-content; text-align: center;margin-top:-15px;">
+      </div>
+      <!-- <h2 style="opacity:50%;">It seems like you dont have any cosmetics.</h2> -->
     </center>
     <div id="events"></div>
     <div id="toast"></div>

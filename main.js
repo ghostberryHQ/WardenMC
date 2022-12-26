@@ -2,9 +2,8 @@ const {app, ipcMain, BrowserWindow} = require('electron');
 const { Authenticator } = require('minecraft-launcher-core');
 const rpc = require("discord-rpc");
 const config = require('./config.json')
-var childProcess = require("child_process");
 const fs = require("fs");
-const ChildProcess = require('child_process');
+const childProcess = require('child_process');
 const path = require('path');
 const client = new rpc.Client({ transport: 'ipc' });
 client.login({ clientId : config.DiscordAPI }).catch(console.error); 
@@ -27,7 +26,7 @@ function handleSquirrelEvent() {
     let spawnedProcess, error;
 
     try {
-      spawnedProcess = ChildProcess.spawn(command, args, {detached: true});
+      spawnedProcess = childProcess.spawn(command, args, {detached: true});
     } catch (error) {}
 
     return spawnedProcess;
@@ -93,10 +92,10 @@ function handleSquirrelEvent() {
     }
     process.env.MAIN_WINDOW_ID = win.id;
   }
-
   
   app.whenReady().then(() => {
     createWindow()
+    fs.writeFileSync(process.env.APPDATA + "/warden/ugh.json", "init\n");
   
     app.on('activate', () => {
       if (BrowserWindow.getAllWindows().length === 0) {
@@ -120,16 +119,13 @@ ipcMain.on('startGame', (event, arg) => {
   fs.writeFileSync(process.env.APPDATA + "/warden/ugh2.json", path.join(__dirname, "WardenNew/run_account.js"));
 
   var MinecraftArgs = [arg.minecraftEverything];
+  //run child process WardenNew/run_account.js using childprocess.fork
   var cp = childProcess.fork(path.join(__dirname, "WardenNew/run_account.js"), MinecraftArgs);
   cp.on("exit", function (code, signal) {
     console.log("Exited", {code: code, signal: signal});
+    fs.appendFileSync(process.env.APPDATA + "/warden/ugh.json", code + " | " + signal + "\n");
   });
   cp.on("error", console.error.bind(console));
-
-  // sleep(10000).then(() => {
-  //   app.quit();
-  // });
-
 });
 
 ipcMain.on('requestForAppData', (event, arg) => {

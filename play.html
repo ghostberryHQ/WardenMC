@@ -25,7 +25,8 @@
     </div >
         <script>
 
-          const { ipcRenderer } = require('electron');
+          // const { ipcRenderer } = require('electron');
+          const { ipcRenderer } = window.require("electron");
           const fetch = require('node-fetch');
 
           /* Kristuff.WebUI.SideMenu */
@@ -110,7 +111,6 @@ function pageLoaded(){
   }
     })
   }
-
 
   // Get the modal
   var modal = document.getElementById("myModal");
@@ -258,7 +258,7 @@ function showToast(text){
           document.getElementById("progressInfoP").innerHTML = "loading: "+data.type;
           console.log(data);
         });
-      }, 1);
+      }, 500);
     }
 </script>
 
@@ -319,8 +319,8 @@ function showToast(text){
       </div>
 
 
-      <h2 style="opacity: 0.5; padding-top:60px">WARDEN PROTOTYPE EDITION</h1>
-      <h2 style="opacity: 0.5;">ANYTHING SEEN AND VIEWED IS IN PRODUCTION STATE AND SHOULD NOT BE EXPECTED TO MAKE IT TO FULL RELEASE</h1>
+      <!-- <h2 style="opacity: 0.5; padding-top:60px">WARDEN PROTOTYPE EDITION</h1>
+      <h2 style="opacity: 0.5;">ANYTHING SEEN AND VIEWED IS IN PRODUCTION STATE AND SHOULD NOT BE EXPECTED TO MAKE IT TO FULL RELEASE</h1> -->
       <div class="select" style="width: 200px;">
         <select id="versionSelectID">
         </select>

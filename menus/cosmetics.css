@@ -1,0 +1,8 @@
+.cape {
+    width:100px; height:150px; display: inline-block;vertical-align: middle; margin-right: 10px;
+    border-radius: 5px;
+}
+.selectedCape {
+    border: 4px solid #fff;
+    border-radius: 5px;
+}

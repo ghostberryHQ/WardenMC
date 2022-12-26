@@ -9,7 +9,6 @@ const {Modrinth} = require("modrinth")
 var AdmZip = require("adm-zip");
 const fsExtra = require('fs-extra');
 const file = require('fs-extra/lib/ensure/file');
-const { app } = require('electron');
 var minecraftVersion;
 var secondaryMCVersion;
 var clientLoaderType;
