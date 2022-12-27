@@ -149,27 +149,54 @@ function pageLoaded(){
   },1000)
   
   let settings = { method: "Get" };
-
+  var versions =[];
+  var versionSelectIDXX = document.getElementById("versionSelectID");
   fetch("https://api.persn.dev/warden/getGameVersions", settings)
     .then(res => res.json())
     .then((json) => {
-      var x = document.getElementById("versionSelectID");
-      var versions =[];
       for (let i = 0; i < json.entries.length; i++) {
         if(json.entries[i].disabled != true) {
-          versions.push(json.entries[i].minecraftVersion)
+          versions.push({"version": json.entries[i].minecraftVersion, "source": "official", "fileName": "unneeded"})
         }
       }
+  }).then(function() {
+    if(!fs.existsSync(process.env.APPDATA+"/warden/layouts")){
+      fs.mkdirSync(process.env.APPDATA+"/warden/layouts");
+    } else {
+      if(fs.readdirSync(process.env.APPDATA+"/warden/layouts").length > 0) {
+        var files = fs.readdirSync(process.env.APPDATA+"/warden/layouts");
+        console.log("files:  "+files)
+        for(var i = 0; i < files.length; i++) {
+          if(files[i].includes(".json")) {
+            readTextFile(process.env.APPDATA+"/warden/layouts/"+files[i], function(text){
+              var data = JSON.parse(text);
+              versions.push({"version": data.metaData.name, "source": "layout", "fileName": files[i - 1]})
+            });
+          }
+        }
+      }
+    }
+  })
+  .then(function() {
+    console.log("yo")
+    setTimeout(function() {
       for(var i = 0; i < versions.length; i++) {
-        var opt = versions[i];
+        var opt = versions[i].version;
+        console.log(versions[i].version)
         var el = document.createElement("option");
         el.textContent = opt;
         el.value = opt;
-        x.appendChild(el);
+        //add data attribute
+        el.setAttribute("data-source", versions[i].source);
+        el.setAttribute("data-fileName", versions[i].fileName);
+
+        versionSelectIDXX.appendChild(el);
       }
-      console.log(versions)
-      //ipcRenderer.send('zong', JSON.parse(text);
+    },100)
   });
+
+  //if folder exists
+
 
   console.log("ready")
 }
@@ -223,6 +250,8 @@ function showToast(text){
       }
       var appdata;
       var mcVersion = document.getElementById("versionSelectID").value
+      var source = document.getElementById("versionSelectID").options[document.getElementById("versionSelectID").selectedIndex].getAttribute("data-source");
+      var fileNameVAR = document.getElementById("versionSelectID").options[document.getElementById("versionSelectID").selectedIndex].getAttribute("data-fileName");
       ipcRenderer.send('requestForAppData', 'please')
       ipcRenderer.on('requestForAppDataReply', (event, arg) => {
         console.log(arg)
@@ -230,23 +259,42 @@ function showToast(text){
       })
       var everythingNeeded = []
       let settings = { method: "Get" };
-
-      fetch("https://api.persn.dev/warden/getGameVersions", settings)
-      .then(res => res.json())
-      .then((json) => {
-        for (let i = 0; i < json.entries.length; i++) {
-          if(json.entries[i].minecraftVersion === mcVersion) {
-              everythingNeeded.push(json.entries[i].minecraftVersion);
-              everythingNeeded.push(json.entries[i].secondaryMinecraftVersion);
-              everythingNeeded.push(json.entries[i].clientLoaderType);
-              everythingNeeded.push(json.entries[i].secondaryClientLoaderType);
-              everythingNeeded.push(json.entries[i].loaderVersion);
-              everythingNeeded.push(json.entries[i].javaVersionRequired);
+      console.log("source: "+source)
+      if(source === "official") {
+        fetch("https://api.persn.dev/warden/getGameVersions", settings)
+        .then(res => res.json())
+        .then((json) => {
+          for (let i = 0; i < json.entries.length; i++) {
+            if(json.entries[i].minecraftVersion === mcVersion) {
+                everythingNeeded.push(json.entries[i].minecraftVersion);
+                everythingNeeded.push(json.entries[i].secondaryMinecraftVersion);
+                everythingNeeded.push(json.entries[i].clientLoaderType);
+                everythingNeeded.push(json.entries[i].secondaryClientLoaderType);
+                everythingNeeded.push(json.entries[i].loaderVersion);
+                everythingNeeded.push(json.entries[i].javaVersionRequired);
+                everythingNeeded.push("official");
+                everythingNeeded.push("unneeded")
+            }
           }
-        }
-    });
+        });
+      } else if(source === "layout") {
+        console.log(process.env.APPDATA+"/warden/layouts/"+fileNameVAR)
+        readTextFile(process.env.APPDATA+"/warden/layouts/"+fileNameVAR, function(text){
+          var data = JSON.parse(text);
+          everythingNeeded.push(data.metaData.minecraftVersion);
+          everythingNeeded.push(data.metaData.secondaryMinecraftVersion);
+          everythingNeeded.push(data.metaData.clientLoaderType);
+          everythingNeeded.push(data.metaData.secondaryClientLoaderType);
+          everythingNeeded.push(data.metaData.loaderVersion);
+          everythingNeeded.push(data.metaData.javaVersionRequired);
+          everythingNeeded.push("layout");
+          everythingNeeded.push(fileNameVAR);
+          consoloe.log("here LAYOUT")
+        });
+      }
 
       setTimeout(function(){
+        console.log("EN:   "+everythingNeeded)
         ipcRenderer.send('startGame', { minecraftEverything: everythingNeeded });
       },1000);
       document.getElementById("progressInfoP").style.visibility = "visible";
@@ -334,7 +382,7 @@ function showToast(text){
       <div class="button" onclick="loadGame(); showToast('Launching Minecraft. Please wait.');"><b>PLAY</b></div>
       <p id="progressInfoP" style="left: 30px; bottom: -12px; position:absolute; visibility: hidden;">LOADING</p>
       <progress id="McProgress" value="0" max="100"></progress>
-      <h4 id="wardenMcVersionText" style="position:absolute; bottom:-20px; right:5px; opacity:40%">v0.6.0</h4>
+      <h4 id="wardenMcVersionText" style="position:absolute; bottom:-20px; right:5px; opacity:40%">v070m12d27</h4>
     </center>
     <div id="events"></div>
     <div id="toast"></div>

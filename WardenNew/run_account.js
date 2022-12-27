@@ -1,6 +1,5 @@
 const { Client, Authenticator } = require('minecraft-launcher-core');
 const Downloader = require("nodejs-file-downloader");
-const https = require('https');
 const launcher = new Client();
 const msmc = require("msmc");
 const fs = require('fs');
@@ -8,13 +7,15 @@ const fetch = require('node-fetch');
 const {Modrinth} = require("modrinth")
 var AdmZip = require("adm-zip");
 const fsExtra = require('fs-extra');
-const file = require('fs-extra/lib/ensure/file');
 var minecraftVersion;
 var secondaryMCVersion;
 var clientLoaderType;
 var secondaryClientLoaderType;
 var loaderVersion;
 var javaEdition;
+var source;
+var layoutName;
+
 const auth = fs.readFileSync(process.env.APPDATA + "/warden/auth/auth.json");
 const parsedAuthProfile = JSON.parse(auth);
 var auth_profile;
@@ -22,7 +23,6 @@ var auth_profile;
 const minecraftDirectory = process.env.APPDATA + "/warden/minecraft";
 let settings = { method: "Get" };
 
-//var minecraft_version = process.argv[2];
 var argy = (process.argv[2]).split(',');
 console.log(argy)
 minecraftVersion = argy[0]
@@ -31,6 +31,9 @@ clientLoaderType = argy[2]
 secondaryClientLoaderType = argy[3]
 loaderVersion = argy[4]
 javaEdition = argy[5]
+source = argy[6]
+layoutName = argy[7]
+
 console.log(minecraftVersion + " : " + loaderVersion);
 
 const modrinth = new Modrinth({
@@ -118,21 +121,29 @@ function modUpdateCheck() {
                 } else if (parsedWardenModConfigJSON.version == parsedUrlData.version) {
                     console.log("User had up to date file!");
 
-                    if (!fs.existsSync(minecraftDirectory)){
-                        fs.mkdirSync(minecraftDirectory);
-                    }
                     if(!fs.existsSync(minecraftDirectory + "/mods")) {
-                        fs.mkdirSync(minecraftDirectory + "/mods");
+                        fs.mkdirSync(minecraftDirectory + "/mods", {recursive: true});
                     }
 
                     var thatThingHappened = false;
 
-                    const tables = parsedWardenModConfigJSON.entries[minecraftVersion];
-                        fs.readdir(minecraftDirectory + "/mods", (err, files) => {
-                            if(!parsedWardenModConfigJSON.entries[minecraftVersion] || files.length !== parsedWardenModConfigJSON.entries[minecraftVersion].length) {
-                                fsExtra.emptyDirSync(minecraftDirectory + "/mods")
+                    var tables;
+                    if(source === "official") tables = parsedWardenModConfigJSON.entries[minecraftVersion];
+                    if(source === "layout") tables = JSON.parse(fs.readFileSync(process.env.APPDATA + "/warden/layouts/" + layoutName)).mods;
+
+                        fs.readdir(process.env.APPDATA + "/warden/minecraft/" + "/mods", (err, files) => {
+                            if(!tables || files.length != tables.length) {
+                                console.log("checking")
+                                if(fs.existsSync(minecraftDirectory + "/mods")) {
+                                    fs.rmSync(minecraftDirectory + "/mods", { recursive: true })
+                                    fs.mkdirSync(minecraftDirectory + "/mods");
+                                }
+                            } else {
+                                console.log("User had correct amount of mods");
                             }
                         });
+
+
                         console.log("TAPL: " +tables)
                         if(!tables) {
                             console.log("no")
@@ -152,9 +163,6 @@ function modUpdateCheck() {
                                         for (let step = 0; step < url.length; step++) {
                                             if((url[step]._source.loaders.includes(clientLoaderType) || url[step]._source.loaders.includes(secondaryClientLoaderType)) && (url[step]._source.game_versions.includes(minecraftVersion) || url[step]._source.game_versions.includes(secondaryMCVersion))) {
                                                 sodium.push(url[step]._source.date_published);
-                                                // console.log(url[step]._source.mod_id + " : added")
-                                            } else {
-                                                // console.log(url[step].mod_id + " : none at " + step)
                                             }
                                         }
                                         sodium.sort();
@@ -175,10 +183,14 @@ function modUpdateCheck() {
                                                     fs.writeFileSync(process.env.APPDATA + "/warden/progress.json", JSON.stringify(obj));
                                                     if(!thatThingHappened) {
                                                         fs.readdir(minecraftDirectory + "/mods", (err, files) => {
-                                                            if(files.length == tables.length && percentage == 100.00) {
-                                                                sleep(5000);
-                                                                thatThingHappened = true;
-                                                                finalChecks();
+                                                            if(files.length == tables.length) {
+                                                                setTimeout(function() {
+                                                                    if(obj.task == 100.00 && !thatThingHappened) {
+                                                                        console.log("yep!")
+                                                                        thatThingHappened = true;
+                                                                        finalChecks();
+                                                                    }
+                                                                }, 5000);
                                                             }
                                                         });
                                                     }
@@ -213,10 +225,55 @@ function modUpdateCheck() {
                                                 fs.writeFileSync(process.env.APPDATA + "/warden/progress.json", JSON.stringify(obj));
                                                 if(!thatThingHappened) {
                                                     fs.readdir(minecraftDirectory + "/mods", (err, files) => {
-                                                        if(files.length == tables.length && percentage == 100.00) {
-                                                            sleep(5000);
-                                                            thatThingHappened = true;
-                                                            finalChecks();
+                                                        if(files.length == tables.length) {
+                                                            setTimeout(function() {
+                                                                if(obj.task == 100.00 && !thatThingHappened) {
+                                                                    console.log("yep!")
+                                                                    sleep(5000);
+                                                                    thatThingHappened = true;
+                                                                    finalChecks();
+                                                                }
+                                                            }, 5000);
+                                                        }
+                                                    });
+                                                }
+                                            },
+                                        });
+                                        try {
+                                            downloader.download();
+                                        } catch (error) {
+                                            console.log(error);
+                                        }
+                                    }
+                                }
+                                else if(modSITE == "url") {
+
+                                    var urlToDownloadMod = modID;
+                                    if (!fs.existsSync(minecraftDirectory + "/mods/"+modNAME+".jar")) {
+                                        const downloader = new Downloader({
+                                            url: urlToDownloadMod,
+                                            directory: minecraftDirectory + "/mods",
+                                            fileName: modNAME+".jar", //This will be the file name.
+                                            onProgress: function (percentage, chunk, remainingSize) {
+                                                //Gets called with each chunk.
+                                                // console.log(finalURL[0].files[0].filename+" | ", percentage + "%");
+                                                obj = {
+                                                    type: "modification",
+                                                    task: percentage,
+                                                    total: 100
+                                                }
+                                                fs.writeFileSync(process.env.APPDATA + "/warden/progress.json", JSON.stringify(obj));
+                                                if(!thatThingHappened) {
+                                                    fs.readdir(minecraftDirectory + "/mods", (err, files) => {
+                                                        if(files.length == tables.length) {
+                                                            setTimeout(function() {
+                                                                if(obj.task == 100.00 && !thatThingHappened) {
+                                                                    console.log("yep!")
+                                                                    sleep(5000);
+                                                                    thatThingHappened = true;
+                                                                    finalChecks();
+                                                                }
+                                                            }, 5000);
                                                         }
                                                     });
                                                 }
@@ -237,16 +294,21 @@ function modUpdateCheck() {
                                     .then(res => res.json())
                                     .then(json => {
                                         let timestampsArray = []
-                                        console.log(modNAME)
+                                        // console.log(modNAME)
                                         for (let step = 0; step < json.data.length; step++) {
+                                            // console.log(json.data[step].gameVersions + "|" + modNAME+ "|" + minecraftVersion)
                                             if(modNAME === "mouse-tweaks" && (json.data[step].gameVersions.includes(minecraftVersion) || json.data[step].gameVersions.includes(secondaryMCVersion))) {
                                                 timestampsArray.push(json.data[step].fileDate);
                                             }else if((json.data[step].gameVersions.includes(minecraftVersion) || json.data[step].gameVersions.includes(secondaryMCVersion)) && (json.data[step].gameVersions.includes(capitalizeFirstLetter(clientLoaderType)) || json.data[step].gameVersions.includes(capitalizeFirstLetter(secondaryClientLoaderType)))) {
                                                 timestampsArray.push(json.data[step].fileDate);
+                                            } else if(json.data[step].gameVersions.includes(minecraftVersion) || json.data[step].gameVersions.includes(secondaryMCVersion)){
+                                                timestampsArray.push(json.data[step].fileDate);
                                             }
                                             timestampsArray.sort();
                                         }
+                                        setTimeout(function() {
                                         const finalURL = Object.values(json.data).filter(user => user.fileDate === timestampsArray.at(-1));
+                                        console.log(modNAME)
                                         if(finalURL[0].downloadUrl == null) {
                                             console.log("No file found for " + modNAME);
                                         } else {
@@ -273,11 +335,15 @@ function modUpdateCheck() {
                                                         fs.writeFileSync(process.env.APPDATA + "/warden/progress.json", JSON.stringify(obj));
                                                         if(!thatThingHappened) {
                                                             fs.readdir(minecraftDirectory + "/mods", (err, files) => {
-                                                                //fs.existsSync(minecraftDirectory + "/mods/qsl-1.1.0-beta.13_qfapi-1.0.0-beta.16_fapi-0.53.4_mc-1.18.2")
-                                                                if(files.length == tables.length && percentage == 100.00) {
-                                                                    sleep(5000);
-                                                                    thatThingHappened = true;
-                                                                    finalChecks();
+                                                                if(files.length == tables.length) {
+                                                                    setTimeout(function() {
+                                                                        if(obj.task == 100.00 && !thatThingHappened) {
+                                                                            console.log("yep!")
+                                                                            sleep(5000);
+                                                                            thatThingHappened = true;
+                                                                            finalChecks();
+                                                                        }
+                                                                    }, 5000);
                                                                 }
                                                             });
                                                         }
@@ -290,6 +356,7 @@ function modUpdateCheck() {
                                                 }
                                             }
                                         }
+                                        }, 1000);
                                     });
                                 }
                                 else {
@@ -304,8 +371,9 @@ function modUpdateCheck() {
                                     console.log(files.length + " mods installed" );
                                 }
                             });
+                            
                         } else {
-                                fsExtra.emptyDirSync(minecraftDirectory + "/mods")
+                                fs.rmSync(minecraftDirectory + "/mods")
                                 finalChecks();
                         }
                     }
@@ -325,6 +393,7 @@ function finalChecks() {
     }
 
     if(javaEdition === "Legacy") {
+        console.log("LEGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG")
         if(!fs.existsSync(process.env.APPDATA + "/warden/java/copper")) {
             fs.mkdirSync(process.env.APPDATA + "/warden/java/copper");
             console.log("doesnt have")
@@ -334,14 +403,14 @@ function finalChecks() {
                 fileName: "OpenJDK8U-jdk.zip", //This will be the file name.
                 onProgress: function (percentage, chunk, remainingSize) {
                     //Gets called with each chunk.
-                    console.log("javaLegacy | ", percentage + "%");
                     obj = {
                         type: "java",
                         task: percentage,
                         total: 100
                     }
+                    if(obj.task > 60.00) console.log("javaLegacy | ", obj.task + "%");
                     fs.writeFileSync(process.env.APPDATA + "/warden/progress.json", JSON.stringify(obj));
-                    if(percentage == 100.00) {
+                    if(obj.task == 100.00) {
                         setTimeout(function(){
                             afterJava();
                         }, 5000);
@@ -378,6 +447,7 @@ function afterJava() {
         if(!fs.existsSync(process.env.APPDATA + "/warden/java/")) {
             fs.mkdirSync(process.env.APPDATA + "/warden/java/");
         }
+
         if(fs.existsSync(`${process.env.APPDATA}/warden/java/copper/OpenJDK8U-jdk.zip`)) {
             unzipOldJava();
         } else {
@@ -407,7 +477,7 @@ function setupNewJava() {
                     total: 100
                 }
                 fs.writeFileSync(process.env.APPDATA + "/warden/progress.json", JSON.stringify(obj));
-                if(percentage == 100.00) {
+                if(obj.task == 100.00) {
                     //timeout
                     setTimeout(function(){
                         unzipJava();
@@ -473,6 +543,7 @@ function setupForge() {
         if(secondaryClientLoaderType === "forgeLegacy") {
             if (!fs.existsSync(process.env.APPDATA + "/warden/forge/forge-"+minecraftVersion+"-"+loaderVersion+"-"+minecraftVersion+"-universal.jar")){
                 const fileNN = "forge-"+minecraftVersion+"-"+loaderVersion+"-"+minecraftVersion+"-universal.jar";
+                var letsSeeIfThisFixes;
                 const downloader = new Downloader({
                     //https://maven.minecraftforge.net/net/minecraftforge/forge/1.8.9-11.15.1.2318-1.8.9/forge-1.8.9-11.15.1.2318-1.8.9-universal.jar
                     //https://maven.minecraftforge.net/net/minecraftforge/forge/1.9.4-12.17.0.2317-1.9.4/forge-1.9.4-12.17.0.2317-1.9.4-universal.jar
@@ -481,18 +552,29 @@ function setupForge() {
                     fileName: fileNN, //This will be the file name.
                     onProgress: function (percentage, chunk, remainingSize) {
                         //Gets called with each chunk.
-                        console.log(fileNN+" | ", percentage + "%");
                         obj = {
                             type: "forge",
                             task: percentage,
                             total: 100
                         }
+                        console.log(fileNN+" | ", obj.task + "%");
                         fs.writeFileSync(process.env.APPDATA + "/warden/progress.json", JSON.stringify(obj));
                         fs.readdir(process.env.APPDATA + "/warden/forge", (err, files) => {
-                            if(files.length == 1 && percentage == 100.00) {
-                                sleep(5000);
-                                continueToStart();
-                            }
+
+                            setTimeout(function() {
+                                if(obj.task == 100.00 && !letsSeeIfThisFixes) {
+                                    console.log("yep!")
+                                    sleep(5000);
+                                    letsSeeIfThisFixes = true;
+                                    continueToStart();
+                                }
+                            }, 5000);
+
+
+                            // if(obj.task == 100.00) {
+                            //     sleep(5000);
+                            //     continueToStart();
+                            // }
                         });
                     },
                 });
@@ -505,29 +587,35 @@ function setupForge() {
                 continueToStart();
             }
         } else if(secondaryClientLoaderType === "forgeNew") {
-            if (!fs.existsSync(process.env.APPDATA + "/warden/forge/forge-"+minecraftVersion+"-"+loaderVersion+"-universal.jar")){
-                const fileNN = "forge-"+minecraftVersion+"-"+loaderVersion+"-universal.jar";
+            var univOrinst;
+            if(minecraftVersion === "1.12.2") univOrinst = "installer"; else univOrinst = "universal";
+            console.log(minecraftVersion)
+            console.log(univOrinst)
+            if (!fs.existsSync(process.env.APPDATA + "/warden/forge/forge-"+minecraftVersion+"-"+loaderVersion+"-"+univOrinst+".jar")){
+                const fileNN = "forge-"+minecraftVersion+"-"+loaderVersion+"-"+univOrinst+".jar";
+                var letsSeeIfThisFixes;
                 const downloader = new Downloader({
-                    //https://maven.minecraftforge.net/net/minecraftforge/forge/1.12.2-14.23.5.2859/forge-1.12.2-14.23.5.2859-universal.jar
-                    //https://maven.minecraftforge.net/net/minecraftforge/forge/1.10.2-12.18.3.2511/forge-1.10.2-12.18.3.2511-universal.jar
-                    //https://maven.minecraftforge.net/net/minecraftforge/forge/1.12.2-14.23.5.2859-1.12.2/forge-1.12.2-14.23.5.2859-universal.jar
-                    url: "https://maven.minecraftforge.net/net/minecraftforge/forge/"+minecraftVersion+"-"+loaderVersion+"/forge-"+minecraftVersion+"-"+loaderVersion+"-universal.jar",
+                    url: "https://maven.minecraftforge.net/net/minecraftforge/forge/"+minecraftVersion+"-"+loaderVersion+"/forge-"+minecraftVersion+"-"+loaderVersion+"-"+univOrinst+".jar",
                     directory: process.env.APPDATA + "/warden/forge",
                     fileName: fileNN, //This will be the file name.
                     onProgress: function (percentage, chunk, remainingSize) {
                         //Gets called with each chunk.
-                        console.log(fileNN+" | ", percentage + "%");
                         obj = {
                             type: "forge",
                             task: percentage,
                             total: 100
                         }
+                        console.log(fileNN+" | ", obj.task + "%");
                         fs.writeFileSync(process.env.APPDATA + "/warden/progress.json", JSON.stringify(obj));
                         fs.readdir(process.env.APPDATA + "/warden/forge", (err, files) => {
-                            if(percentage == 100.00) {
-                                sleep(5000);
-                                continueToStart();
-                            }
+                            setTimeout(function() {
+                                if(obj.task == 100.00 && !letsSeeIfThisFixes) {
+                                    console.log("yep!")
+                                    sleep(5000);
+                                    letsSeeIfThisFixes = true;
+                                    continueToStart();
+                                }
+                            }, 5000);
                         });
                     },
                 });
@@ -543,24 +631,29 @@ function setupForge() {
     } else {
         if (!fs.existsSync(process.env.APPDATA + "/warden/forge/forge-"+minecraftVersion+"-"+loaderVersion+"-"+minecraftVersion+"-installer.jar")){
             const fileNN = "forge-"+minecraftVersion+"-"+loaderVersion+"-"+minecraftVersion+"-installer.jar";
+            var letsSeeIfThisFixes;
             const downloader = new Downloader({
                 url: "https://maven.minecraftforge.net/net/minecraftforge/forge/"+minecraftVersion+"-"+loaderVersion+"-"+minecraftVersion+"/forge-"+minecraftVersion+"-"+loaderVersion+"-"+minecraftVersion+"-installer.jar",
                 directory: process.env.APPDATA + "/warden/forge",
                 fileName: fileNN, //This will be the file name.
                 onProgress: function (percentage, chunk, remainingSize) {
                     //Gets called with each chunk.
-                    console.log(fileNN+" | ", percentage + "%");
                     obj = {
                         type: "forge",
                         task: percentage,
                         total: 100
                     }
+                    console.log(fileNN+" | ", obj.task + "%");
                     fs.writeFileSync(process.env.APPDATA + "/warden/progress.json", JSON.stringify(obj));
                     fs.readdir(process.env.APPDATA + "/warden/forge", (err, files) => {
-                        if(files.length == 1 && percentage == 100.00) {
-                            sleep(5000);
-                            continueToStart();
-                        }
+                        setTimeout(function() {
+                            if(obj.task == 100.00 && !letsSeeIfThisFixes) {
+                                console.log("yep!")
+                                sleep(5000);
+                                letsSeeIfThisFixes = true;
+                                continueToStart();
+                            }
+                        }, 5000);
                     });
                 },
             });
@@ -578,11 +671,7 @@ function setupForge() {
 function continueToStart() {
     var assembler;
 
-
-    // console.log("FINAL: "+JSON.stringify(parsedAuthProfile));
-    // console.log("FINAL ACCESS: "+parsedAuthProfile.access_token);
-    // console.log("FINAL CLIENT: "+parsedAuthProfile.client_token);
-
+    console.log("Starting Minecraft...")
 
     let opts;
     if(clientLoaderType === "forge" && javaEdition === "Legacy" && secondaryClientLoaderType === "forgeLegacy") {
@@ -609,7 +698,8 @@ function continueToStart() {
             },
         }
     }else if(clientLoaderType === "forge" && javaEdition === "Legacy" && secondaryClientLoaderType === "forgeNew") {
-
+        var univOrinst;
+        if(minecraftVersion === "1.12.2") univOrinst = "installer"; else univOrinst = "universal";
         opts = {
             clientpackage: null,
             authorization: {
@@ -621,7 +711,7 @@ function continueToStart() {
             },
             root: minecraftDirectory,
             javaPath: process.env.APPDATA+"\\warden\\java\\copper\\jdk8u352-b08\\bin\\java.exe",
-            forge: process.env.APPDATA + "/warden/forge/"+"forge-"+minecraftVersion+"-"+loaderVersion+"-universal.jar",
+            forge: process.env.APPDATA + "/warden/forge/"+"forge-"+minecraftVersion+"-"+loaderVersion+"-"+univOrinst+".jar",
             version: {
                 number: minecraftVersion,
                 type: "MCC-Launcher" 
@@ -846,13 +936,15 @@ function continueToStart() {
             // }
         }
     }
+    console.log("starting starting minecraft")
+    console.log(finalOpts)
     launcher.launch(finalOpts);
     //launcher.on('progress', (e) => fs.writeFileSync(process.env.APPDATA + "/warden/progress.json", JSON.stringify(e)));
     launcher.on('progress', (e) => {
         fs.writeFileSync(process.env.APPDATA + "/warden/progress.json", JSON.stringify(e));
-        console.log(e)
+        // console.log(e)
     });
-    launcher.on('debug', (e) => console.log(e));
+    // launcher.on('debug', (e) => console.log(e));
     launcher.on('data', (e) => console.log(e));
 
     //when launched
