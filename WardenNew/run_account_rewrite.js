@@ -46,7 +46,7 @@ const defaultWardenSettings = {
     "gammaEdit": "10.0"
 }
 
-if(!fs.existsSync(process.env.APPDATA + "/warden/settings.json")) fs.writeFileSync(process.env.APPDATA + "/warden/settings.json", defaultWardenSettings);
+if(!fs.existsSync(process.env.APPDATA + "/warden/settings.json")) fs.writeFileSync(process.env.APPDATA + "/warden/settings.json", JSON.stringify(defaultWardenSettings));
 
 const wardenSettingsFile = JSON.parse(fs.readFileSync(process.env.APPDATA + "/warden/settings.json"));
 
