@@ -24,6 +24,7 @@ const minecraftDirectory = process.env.APPDATA + "/warden/minecraft";
 let settings = { method: "Get" };
 
 var argy = (process.argv[2]).split(',');
+console.log(process.argv)
 console.log(argy)
 minecraftVersion = argy[0]
 secondaryMCVersion = argy[1]
@@ -34,13 +35,13 @@ javaEdition = argy[5]
 source = argy[6]
 layoutName = argy[7]
 
-console.log(minecraftVersion + " : " + loaderVersion);
+// console.log(minecraftVersion + " : " + loaderVersion);
 
 const modrinth = new Modrinth({
     authorization: "" 
 });
 
-checkValid();
+// checkValid();
 
 function checkValid() {
     auth_profile = fs.readFileSync(process.env.APPDATA + "/warden/auth/auth_profile.json");
@@ -64,14 +65,6 @@ function checkValid() {
                 console.log("valid")
                 modUpdateCheck();
             }
-
-            // if(err) {
-            //     console.log(err);
-            // } else {
-            //     const refreshedFile = JSON.stringify(newProfile.profile);
-            //     fs.writeFileSync(process.env.APPDATA + "/warden/auth/auth_profile.json", refreshedFile);
-            //     console.log(refreshedFile);
-            // }
         }).catch(err => {
             console.log(err);
         });
@@ -150,6 +143,8 @@ function modUpdateCheck() {
                         } else {
                             console.log("yes")
                         }
+
+
                         if(tables) {
                             tables.forEach(function(table) {
                                 var modID = table.id;
@@ -312,9 +307,7 @@ function modUpdateCheck() {
                                         if(finalURL[0].downloadUrl == null) {
                                             console.log("No file found for " + modNAME);
                                         } else {
-                                            // console.log(finalURL[0].downloadUrl);
                                             var urlforfilename;
-                                            // if(modNAME == "better-sodium-video-settings-button") urlforfilename = "https://www.curseforge.com/minecraft/mc-mods/better-sodium-video-settings-button/download/3769487"
                                             urlforfilename = finalURL[0].downloadUrl;
                                             var filename = urlforfilename.substring(urlforfilename.lastIndexOf('/')+1);
                                             
@@ -538,15 +531,12 @@ function unZipped() {
 
 
 function setupForge() {
-
     if(javaEdition === "Legacy") {
         if(secondaryClientLoaderType === "forgeLegacy") {
             if (!fs.existsSync(process.env.APPDATA + "/warden/forge/forge-"+minecraftVersion+"-"+loaderVersion+"-"+minecraftVersion+"-universal.jar")){
                 const fileNN = "forge-"+minecraftVersion+"-"+loaderVersion+"-"+minecraftVersion+"-universal.jar";
                 var letsSeeIfThisFixes;
                 const downloader = new Downloader({
-                    //https://maven.minecraftforge.net/net/minecraftforge/forge/1.8.9-11.15.1.2318-1.8.9/forge-1.8.9-11.15.1.2318-1.8.9-universal.jar
-                    //https://maven.minecraftforge.net/net/minecraftforge/forge/1.9.4-12.17.0.2317-1.9.4/forge-1.9.4-12.17.0.2317-1.9.4-universal.jar
                     url: "https://maven.minecraftforge.net/net/minecraftforge/forge/"+minecraftVersion+"-"+loaderVersion+"-"+minecraftVersion+"/forge-"+minecraftVersion+"-"+loaderVersion+"-"+minecraftVersion+"-universal.jar",
                     directory: process.env.APPDATA + "/warden/forge",
                     fileName: fileNN, //This will be the file name.
@@ -675,7 +665,6 @@ function continueToStart() {
 
     let opts;
     if(clientLoaderType === "forge" && javaEdition === "Legacy" && secondaryClientLoaderType === "forgeLegacy") {
-
         opts = {
             clientpackage: null,
             authorization: {
@@ -818,7 +807,6 @@ function continueToStart() {
         //quilt-loader-0.17.0-beta.2-1.18.2
     }
 
-    //https://maven.minecraftforge.net/net/minecraftforge/forge/1.8.9-11.15.1.2318-1.8.9/forge-1.8.9-11.15.1.2318-1.8.9-universal.jar
     if(clientLoaderType === "quilt") {
         assembler = "quilt-loader-"+loaderVersion+"-"+minecraftVersion;
     } else if(clientLoaderType === "forge") {
@@ -830,6 +818,9 @@ function continueToStart() {
     if (!fs.existsSync(minecraftDirectory+"/versions/" + assembler)){
         fs.mkdirSync(minecraftDirectory+"/versions/" + assembler);
     }
+
+
+    //I NEED TO REWRITE EVERYTHING FROM HERE
 
     if(clientLoaderType === "forge") {
 
@@ -851,8 +842,10 @@ function continueToStart() {
             fs.writeFileSync(minecraftDirectory+"/options.txt", "gamma:10.0");
         }
 
-        if(fs.existsSync(minecraftDirectory+"/config")) {
 
+        
+
+        if(fs.existsSync(minecraftDirectory+"/config")) {
             if(fs.existsSync(minecraftDirectory+"/config/CustomMainMenu")) {
                 if(fs.existsSync(minecraftDirectory+"/config/CustomMainMenu/mainmenu.json")) {
                     fs.writeFileSync(minecraftDirectory+"/config/CustomMainMenu/mainmenu.json", "");
@@ -910,6 +903,8 @@ function continueToStart() {
         }
     }
 
+    //TO HERE
+
     if(clientLoaderType === "quilt") {
         if (!fs.existsSync(minecraftDirectory+"/versions/" + assembler+"/"+assembler+".json")){
             const file = fs.createWriteStream(minecraftDirectory+"/versions/" + assembler+"/"+assembler+".json");
@@ -940,10 +935,7 @@ function continueToStart() {
     console.log(finalOpts)
     launcher.launch(finalOpts);
     //launcher.on('progress', (e) => fs.writeFileSync(process.env.APPDATA + "/warden/progress.json", JSON.stringify(e)));
-    launcher.on('progress', (e) => {
-        fs.writeFileSync(process.env.APPDATA + "/warden/progress.json", JSON.stringify(e));
-        // console.log(e)
-    });
+    launcher.on('progress', (e) => { fs.writeFileSync(process.env.APPDATA + "/warden/progress.json", JSON.stringify(e)); console.log(e) });
     // launcher.on('debug', (e) => console.log(e));
     launcher.on('data', (e) => console.log(e));
 

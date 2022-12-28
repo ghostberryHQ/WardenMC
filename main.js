@@ -95,7 +95,6 @@ function handleSquirrelEvent() {
   
   app.whenReady().then(() => {
     createWindow()
-    fs.writeFileSync(process.env.APPDATA + "/warden/ugh.json", "init\n");
   
     app.on('activate', () => {
       if (BrowserWindow.getAllWindows().length === 0) {
@@ -116,14 +115,10 @@ ipcMain.on('startGame', (event, arg) => {
   if(!fs.existsSync(process.env.APPDATA + "/warden/auth/auth.json") && !fs.existsSync(process.env.APPDATA + "/warden/auth/auth_profile.json")) {
     app.quit();
   }
-  fs.writeFileSync(process.env.APPDATA + "/warden/ugh2.json", path.join(__dirname, "WardenNew/run_account.js"));
-
   var MinecraftArgs = [arg.minecraftEverything];
-  //run child process WardenNew/run_account.js using childprocess.fork
-  var cp = childProcess.fork(path.join(__dirname, "WardenNew/run_account.js"), MinecraftArgs);
+  var cp = childProcess.fork(path.join(__dirname, "WardenNew/run_account_rewrite.js"), MinecraftArgs);
   cp.on("exit", function (code, signal) {
     console.log("Exited", {code: code, signal: signal});
-    fs.appendFileSync(process.env.APPDATA + "/warden/ugh.json", code + " | " + signal + "\n");
   });
   cp.on("error", console.error.bind(console));
 });

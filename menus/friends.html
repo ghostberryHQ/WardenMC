@@ -183,7 +183,7 @@ window.onload = () => {
       </a>
     </li>
     <li>
-      <a href="#" class="wui-side-menu-item" onclick="showToast('Coming Soon!');">
+      <a id="settingsTab" href="./menus/settings.html?uuid=" class="wui-side-menu-item">
         <b><span class="box-title"><i style="margin-right:5px;" class="fa-solid fa-gear"></i>Settings</span></b>
       </a>
     </li>
@@ -252,5 +252,6 @@ window.onload = () => {
     var uuid = urlParams.get('uuid');
     document.getElementById("accountsTab").href = "./accounts.html?uuid=" + uuid;
     document.getElementById("cosmeticsTab").href = "./cosmetics.html?uuid=" + uuid;
+    document.getElementById("settingsTab").href = "./settings.html?uuid=" + uuid;
   </script>
 </html>

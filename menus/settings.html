@@ -3,7 +3,6 @@
   <head>
     <link rel="stylesheet" href="../styles_play.css">
     <link rel="stylesheet" href="../circles_play.css">
-    <link rel="stylesheet" href="./profiles.css">
     <script src="../main.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" integrity="sha512-MV7K8+y+gLIBoVD59lQIYicR65iaqukzvf/nwasF0nqhPay5w/9lJmVM2hMDcnK1OnMGCdVK+iQrJ7lzPJQd1w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <meta charset="UTF-8">
@@ -91,35 +90,40 @@
     window.SideMenu = sideMenu;
 })(window);
 
-function readTextFile(file, callback) {
-      var rawFile = new XMLHttpRequest();
-      rawFile.overrideMimeType("application/json");
-      rawFile.open("GET", file, true);
-      rawFile.onreadystatechange = function() {
-          if (rawFile.readyState === 4 && rawFile.status == "200") {
-              callback(rawFile.responseText);
-          }
-      }
-      rawFile.send(null);
-    }
-
-
+var urlParams2 = new URLSearchParams(window.location.search);
+var uuid2 = urlParams2.get('uuid');
+var settings;
 document.addEventListener('DOMContentLoaded',pageLoaded);
 function pageLoaded(){
-  readTextFile(process.env.APPDATA + "/warden/auth/auth_profile.json", function(text){
-    var parsed = JSON.parse(text);
-    var Name = document.getElementById("MCName");
-    var UUID = document.getElementById("MCUUID");
-    var image = document.getElementById("MCSkin");
-    document.getElementById("MCSkin").src = "https://crafatar.com/avatars/"+parsed.id+"?size=100";
-    Name.innerHTML = parsed.name;
-    UUID.innerHTML = parsed.id;
-    console.log(parsed)
-    //ipcRenderer.send('zong', JSON.parse(text);
-  });
-
+  const fs = require('fs');
   console.log("ready")
+  if(fs.existsSync(process.env.APPDATA+"/warden/settings.json")) {
+    settings = JSON.parse(fs.readFileSync(process.env.APPDATA+"/warden/settings.json"));
+    document.getElementById("currentConfigVersion").innerHTML = `Current Mod Config Version: ${settings.wardenModConfigVersion}`;
+    var gammaSlider = document.getElementById("gammaSlider");
+    var valueOfSlider = document.getElementById("valueOfSlider");
+    valueOfSlider.innerHTML = parseFloat(settings.gammaEdit).toFixed(1);
+    gammaSlider.value = settings.gammaEdit;
+
+
+    gammaSlider.oninput = function() {
+      console.log(this.value)
+      valueOfSlider.innerHTML = parseFloat(this.value).toFixed(1);
+
+      settings.gammaEdit = parseFloat(this.value).toFixed(1);
+      fs.writeFileSync(process.env.APPDATA+"/warden/settings.json", JSON.stringify(settings));
+    }
+  } else {
+    showToast("No settings file found! Try playing a game first.")
+
+    document.getElementById("currentConfigVersion").style.visibility = "hidden";
+    document.getElementById("gammaSlider").style.visibility = "hidden";
+    document.getElementById("sliderTag").style.visibility = "hidden";
+  }
 }
+
+
+
 
 function showToast(text){
         var isShowing = false;
@@ -149,17 +153,17 @@ function showToast(text){
       </a>
     </li>
     <li>
-      <a id="accountsTab" href="./accounts.html?uuid=" class="wui-side-menu-item active">
+      <a id="accountsTab" href="./accounts.html?uuid=" class="wui-side-menu-item">
         <b><span class="box-title"><i style="margin-right:5px;" class="fa-solid fa-person"></i>Accounts</span></b>
       </a>
     </li>
     <li>
-      <a id="cosmeticsTab" href="#" class="wui-side-menu-item">
+      <a id="cosmeticsTab" href="./cosmetics.html?uuid=" class="wui-side-menu-item">
         <b><span class="box-title"><i style="margin-right:5px;" class="fa-solid fa-shirt"></i>Cosmetics</span></b>
       </a>
     </li>
     <li>
-      <a id="settingsTab" href="./menus/settings.html?uuid=" class="wui-side-menu-item">
+      <a href="#" class="wui-side-menu-item active" href="#">
         <b><span class="box-title"><i style="margin-right:5px;" class="fa-solid fa-gear"></i>Settings</span></b>
       </a>
     </li>
@@ -176,35 +180,31 @@ function showToast(text){
   </div> 
   <div class="wui-content-main">
     <center>
-      <h1>Accounts</h1>
-      <div class="profile">
-        <div class="photo"><img id="MCSkin"/></div>
-        <div class="content22">
-            <div class="text">
-                <h3 id="MCName"></h3>
-                <h6 id="MCUUID"></h6>
-            </div>
-        </div>
-        </div>
+      <h1>Settings</h1>
+      <!-- <h3 id="currentGammaLevel" style="opacity:50%; margin-top:35px;">Current Minecraft Gamma Level: </h3> -->
+      <div class="block">
+        <label style="font-size: 1.17em; font-weight: bold; opacity:50%; margin-top:35px;" id="sliderTag">Current Minecraft Gamma Level: </label>
+        <input type="range" min="0" max="10" id="gammaSlider" step="0.50">
+        <label style="font-size: 1.17em; font-weight: bold; opacity:50%;" id="valueOfSlider"></label>
       </div>
+      <h3 id="currentConfigVersion" style="opacity:50%; margin-top:10px;">Current Mod Config Version: </h3>
     </center>
     <div id="events"></div>
     <div id="toast"></div>
   </div>
 </div>
-  </div>
+</div>
 
 
   <script>
-
     //get url parameter uuid
     var urlParams = new URLSearchParams(window.location.search);
     var uuid = urlParams.get('uuid');
 
+
     //get element by id
     document.getElementById("friendsTab").href = "./friends.html?uuid=" + uuid;
+    document.getElementById("accountsTab").href = "./accounts.html?uuid=" + uuid;
     document.getElementById("cosmeticsTab").href = "./cosmetics.html?uuid=" + uuid;
-    document.getElementById("settingsTab").href = "./settings.html?uuid=" + uuid;
-
   </script>
 </html>
