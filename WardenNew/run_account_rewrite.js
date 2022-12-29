@@ -42,8 +42,10 @@ function capitalizeFirstLetter(string) {
 
 const defaultWardenSettings = {
     "closeWardenOnMCLaunch": false,
+    "discordRPC":true,
     "wardenModConfigVersion": "0",
-    "gammaEdit": "10.0"
+    "gammaEdit": "10.0",
+    "maxRam":"6"
 }
 
 if(!fs.existsSync(process.env.APPDATA + "/warden/settings.json")) fs.writeFileSync(process.env.APPDATA + "/warden/settings.json", JSON.stringify(defaultWardenSettings));
@@ -489,15 +491,12 @@ function setupModLoader() {
 
 function wardenEdits() {
     console.log(wardenSettingsFile.gammaEdit)
-    
 
-    var labo = fs.readFileSync(process.env.APPDATA+"/warden/minecraft/options.txt").toString();
-    console.log(labo)
-    // console.log(/.*gamma.*\n/g.exec(labo))
-
-    //regex labo with /.*gamma.*\n/g
-    console.log(labo.match(/.*gamma.*\n/g))
-
+    try {
+        fs.writeFileSync(process.env.APPDATA+"/warden/minecraft/config/customwindowtitle-client.toml", 'title = "WardenMC | {mcversion}"', {recursive: true});
+    } catch (err) {
+        console.error(err);
+    }
 
     if(fs.existsSync(process.env.APPDATA+"/warden/minecraft/options.txt")) {
         const options = {
@@ -560,7 +559,7 @@ function start() {
                 type: "MCC-Launcher" 
             },
             memory: {
-                max: "6G",
+                max: `${wardenSettingsFile.maxRam}G`,
                 min: "4G"
             },
         }
@@ -584,7 +583,7 @@ function start() {
                 type: "MCC-Launcher" 
             },
             memory: {
-                max: "6G",
+                max: `${wardenSettingsFile.maxRam}G`,
                 min: "4G"
             },
         }
@@ -606,7 +605,7 @@ function start() {
                 type: "MCC-Launcher" 
             },
             memory: {
-                max: "6G",
+                max: `${wardenSettingsFile.maxRam}G`,
                 min: "4G"
             },
         }
@@ -628,7 +627,7 @@ function start() {
                 custom: "quilt-loader-"+loaderVersion+"-"+minecraftVersion
             },
             memory: {
-                max: "6G",
+                max: `${wardenSettingsFile.maxRam}G`,
                 min: "4G"
             },
         }
@@ -650,7 +649,7 @@ function start() {
                 custom: "fabric-loader-"+loaderVersion+"-"+minecraftVersion
             },
             memory: {
-                max: "6G",
+                max: `${wardenSettingsFile.maxRam}G`,
                 min: "4G"
             },
         }
@@ -671,7 +670,7 @@ function start() {
                 type: "release"
             },
             memory: {
-                max: "6G",
+                max: `${wardenSettingsFile.maxRam}G`,
                 min: "4G"
             },
         }
@@ -682,6 +681,14 @@ function start() {
     console.log("Starting Minecraft")
     launcher.launch(finalOpts);
     launcher.on('progress', (e) => { fs.writeFileSync(process.env.APPDATA + "/warden/progress.json", JSON.stringify(e)); console.log(e) });
-
+    launcher.on('data', (e) => {
+        console.log(e);
+        obj = {
+            type: "Launching Minecraft",
+            task: 100,
+            total: 100
+        } 
+        fs.writeFileSync(process.env.APPDATA + "/warden/progress.json", JSON.stringify(obj));
+    });
 }
 

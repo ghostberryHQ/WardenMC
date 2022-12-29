@@ -1,12 +1,21 @@
 const {app, ipcMain, BrowserWindow} = require('electron');
 const { Authenticator } = require('minecraft-launcher-core');
 const rpc = require("discord-rpc");
-const config = require('./config.json')
 const fs = require("fs");
 const childProcess = require('child_process');
 const path = require('path');
+const config = require('./config.json');
 const client = new rpc.Client({ transport: 'ipc' });
-client.login({ clientId : config.DiscordAPI }).catch(console.error); 
+
+if(fs.existsSync(process.env.APPDATA + "/warden/settings.json")) {
+  const data = JSON.parse(fs.readFileSync(process.env.APPDATA + "/warden/settings.json"));
+  // console.log(data)
+  if(data.discordRPC == true) client.login({ clientId : config.DiscordAPI }).catch(console.error);
+  else console.log("Discord RPC is disabled because discordRPC = false")
+} else {
+  client.login({ clientId : config.DiscordAPI }).catch(console.error); 
+  console.log("Discord RPC is enabled because settings.json is not found")
+}
 
 if (require('electron-squirrel-startup')) { // eslint-disable-line global-require
   app.quit();

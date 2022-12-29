@@ -95,34 +95,66 @@ var uuid2 = urlParams2.get('uuid');
 var settings;
 document.addEventListener('DOMContentLoaded',pageLoaded);
 function pageLoaded(){
-  const fs = require('fs');
   console.log("ready")
+  const fs = require('fs');
   if(fs.existsSync(process.env.APPDATA+"/warden/settings.json")) {
+    settingsStuffForWarden();
+  } else {
+    showToast("No settings file found! Making one...")
+    const defaultWardenSettings = {
+      "closeWardenOnMCLaunch": false,
+      "discordRPC":true,
+      "wardenModConfigVersion": "0",
+      "gammaEdit": "10.0",
+      "maxRam":"6"
+    }
+    fs.writeFileSync(process.env.APPDATA+"/warden/settings.json", JSON.stringify(defaultWardenSettings));
+    settingsStuffForWarden();
+  }
+}
+
+function settingsStuffForWarden() {
+    const fs = require('fs');
+    const os = require('os');
+    const totalRamPCHas = Math.ceil(os.totalmem() / 1024 / 1024 / 1024);
     settings = JSON.parse(fs.readFileSync(process.env.APPDATA+"/warden/settings.json"));
     document.getElementById("currentConfigVersion").innerHTML = `Current Mod Config Version: ${settings.wardenModConfigVersion}`;
     var gammaSlider = document.getElementById("gammaSlider");
     var valueOfSlider = document.getElementById("valueOfSlider");
+    var maxRamInput = document.getElementById("maxRamInput");
+    var isDiscordRPC = document.getElementById("isDiscordRPC");
+
+    maxRamInput.max = totalRamPCHas;
+    maxRamInput.value = settings.maxRam;
+    isDiscordRPC.checked = settings.discordRPC;
+
     valueOfSlider.innerHTML = parseFloat(settings.gammaEdit).toFixed(1);
     gammaSlider.value = settings.gammaEdit;
 
+    isDiscordRPC.onchange = function() {
+      settings.discordRPC = this.checked;
+      fs.writeFileSync(process.env.APPDATA+"/warden/settings.json", JSON.stringify(settings));
+    }
 
     gammaSlider.oninput = function() {
-      console.log(this.value)
       valueOfSlider.innerHTML = parseFloat(this.value).toFixed(1);
 
       settings.gammaEdit = parseFloat(this.value).toFixed(1);
       fs.writeFileSync(process.env.APPDATA+"/warden/settings.json", JSON.stringify(settings));
     }
-  } else {
-    showToast("No settings file found! Try playing a game first.")
 
-    document.getElementById("currentConfigVersion").style.visibility = "hidden";
-    document.getElementById("gammaSlider").style.visibility = "hidden";
-    document.getElementById("sliderTag").style.visibility = "hidden";
-  }
+    maxRamInput.oninput = function() {
+      if(this.value > totalRamPCHas) {
+        this.value = totalRamPCHas;
+      }
+      if((this.value <= 3) && this.value != "") {
+        this.value = 4;
+      }
+      
+      settings.maxRam = this.value;
+      fs.writeFileSync(process.env.APPDATA+"/warden/settings.json", JSON.stringify(settings));
+    }
 }
-
-
 
 
 function showToast(text){
@@ -174,6 +206,18 @@ function showToast(text){
     </li>
   </ul>
 </div>
+<style>
+  input[type=checkbox]
+  {
+    /* Double-sized Checkboxes */
+    -ms-transform: scale(1.5); /* IE */
+    -moz-transform: scale(1.5); /* FF */
+    -webkit-transform: scale(1.5); /* Safari and Chrome */
+    -o-transform: scale(1.5); /* Opera */
+    transform: scale(1.5);
+    padding: 10px;
+  }
+</style>
 <div class="wui-content">
   <div class="wui-content-header">
     <a href="#" class="wui-side-menu-trigger"><i class="fa fa-bars"></i></a>
@@ -181,13 +225,21 @@ function showToast(text){
   <div class="wui-content-main">
     <center>
       <h1>Settings</h1>
-      <!-- <h3 id="currentGammaLevel" style="opacity:50%; margin-top:35px;">Current Minecraft Gamma Level: </h3> -->
-      <div class="block">
-        <label style="font-size: 1.17em; font-weight: bold; opacity:50%; margin-top:35px;" id="sliderTag">Current Minecraft Gamma Level: </label>
+      <h3 id="currentConfigVersion" style="opacity:50%; margin-top:10px;">Current Mod Config Version: </h3>
+      <div class="sfsdsdsdsds" style="margin-top:15px">
+        <label style="font-size: 1.17em; font-weight: bold; opacity:50%;" for="isDiscordRPC">Discord Integration (requires restart): </label>
+        <input type="checkbox" id="isDiscordRPC" value="RPC">
+      </div>
+      <div class="sfsdsdsdsds" style="margin-top:15px">
+        <label style="font-size: 1.17em; font-weight: bold; opacity:50%;" id="sliderTag" for="gammaSlider">Current Minecraft Gamma Level: </label>
         <input type="range" min="0" max="10" id="gammaSlider" step="0.50">
         <label style="font-size: 1.17em; font-weight: bold; opacity:50%;" id="valueOfSlider"></label>
       </div>
-      <h3 id="currentConfigVersion" style="opacity:50%; margin-top:10px;">Current Mod Config Version: </h3>
+      <div class="sfsdsdsdsds" style="margin-top:15px">
+        <label style="font-size: 1.17em; font-weight: bold; opacity:50%;" id="maxRamTag" for="maxRamInput">Max Ram (Gb): </label>
+        <input type="number" min="4" id="maxRamInput" step="1.00">
+        <h3 style="font-size: 0.75em; font-weight: bold; opacity:50%;margin-left:135px;margin-top:5px;">(minimum of 4)</h3>
+      </div>
     </center>
     <div id="events"></div>
     <div id="toast"></div>

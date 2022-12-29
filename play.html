@@ -102,6 +102,10 @@ var alerted = false;
 document.addEventListener('DOMContentLoaded',pageLoaded);
 function pageLoaded(){
 
+  const sleep = (time) => {
+    return new Promise(resolve => setTimeout(resolve, time))
+  }
+
 
   if(fs.existsSync(process.env.APPDATA+"/warden/minecraft/logs/latest.log")) {
     fs.unlink(process.env.APPDATA+"/warden/minecraft/logs/latest.log", (err) => {
@@ -136,9 +140,6 @@ function pageLoaded(){
   setInterval(function(){ 
     if(fs.existsSync(process.env.APPDATA+"/warden/minecraft/logs/latest.log") && alerted === false) {
       readTextFile(process.env.APPDATA+"/warden/minecraft/logs/latest.log", function(text){
-      console.log(text)
-      console.log(text.includes("Minecraft has crashed!"))
-      console.log(modal.style.display)
       if(modal.style.display === "none" && text.includes("Minecraft has crashed!")) {
         crashTitle.innerHTML = CrashTitleLines[Math.floor(Math.random() * CrashTitleLines.length)];
         modal.style.display = "block";
@@ -163,21 +164,25 @@ function pageLoaded(){
     if(!fs.existsSync(process.env.APPDATA+"/warden/layouts")){
       fs.mkdirSync(process.env.APPDATA+"/warden/layouts");
     } else {
-      if(fs.readdirSync(process.env.APPDATA+"/warden/layouts").length > 0) {
-        var files = fs.readdirSync(process.env.APPDATA+"/warden/layouts");
-        console.log("files:  "+files)
-        for(var i = 0; i < files.length; i++) {
-          if(files[i].includes(".json")) {
-            readTextFile(process.env.APPDATA+"/warden/layouts/"+files[i], function(text){
-              var data = JSON.parse(text);
-              versions.push({"version": data.metaData.name, "source": "layout", "fileName": files[i - 1]})
-            });
+
+      if(!fs.readdirSync(process.env.APPDATA+"/warden/layouts").length > 0) {
+        console.log("no layouts detected")
+      } else {
+        console.log("layouts detected")
+        var fileCount = fs.readdirSync(process.env.APPDATA+"/warden/layouts");
+        for(var i = 0; i < fileCount.length; i++) {
+          var file = fs.readFileSync(process.env.APPDATA+"/warden/layouts/"+fileCount[i]);
+          var json = JSON.parse(file);
+          
+          if(json.metaData.disabled != true) {
+            versions.push({"version": json.metaData.name, "source": "layout", "fileName": fileCount[i]})
           }
         }
       }
     }
   })
   .then(function() {
+    console.log(versions)
     console.log("yo")
     setTimeout(function() {
       for(var i = 0; i < versions.length; i++) {
@@ -192,7 +197,7 @@ function pageLoaded(){
 
         versionSelectIDXX.appendChild(el);
       }
-    },100)
+    },200)
   });
 
   //if folder exists
@@ -289,7 +294,6 @@ function showToast(text){
           everythingNeeded.push(data.metaData.javaVersionRequired);
           everythingNeeded.push("layout");
           everythingNeeded.push(fileNameVAR);
-          consoloe.log("here LAYOUT")
         });
       }
 
@@ -298,15 +302,15 @@ function showToast(text){
         ipcRenderer.send('startGame', { minecraftEverything: everythingNeeded });
       },1000);
       document.getElementById("progressInfoP").style.visibility = "visible";
-      setInterval(function() {
+
+      var progressInterval = setInterval(function() {
         readTextFile(appdata+"/warden/progress.json", function(text){
           var data = JSON.parse(text);
           document.getElementById("McProgress").max = data.total;
           document.getElementById("McProgress").value = data.task;
           document.getElementById("progressInfoP").innerHTML = "loading: "+data.type;
-          console.log(data);
         });
-      }, 500);
+      }, 1000);
     }
 </script>
 
@@ -380,9 +384,9 @@ function showToast(text){
         </svg>
       </div>
       <div class="button" onclick="loadGame(); showToast('Launching Minecraft. Please wait.');"><b>PLAY</b></div>
-      <p id="progressInfoP" style="left: 30px; bottom: -12px; position:absolute; visibility: hidden;">LOADING</p>
+      <p id="progressInfoP" style="left: 30px; bottom: -12px; position:absolute; visibility: hidden;width:125px; overflow-wrap: break-word;">LOADING</p>
       <progress id="McProgress" value="0" max="100"></progress>
-      <h4 id="wardenMcVersionText" style="position:absolute; bottom:-20px; right:5px; opacity:40%">v070m12d28</h4>
+      <h4 id="wardenMcVersionText" style="position:absolute; bottom:-20px; right:5px; opacity:40%">v070m12d29</h4>
     </center>
     <div id="events"></div>
     <div id="toast"></div>
