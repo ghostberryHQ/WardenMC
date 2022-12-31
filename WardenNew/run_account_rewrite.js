@@ -73,6 +73,9 @@ function checkValidAuth() {
 
             } else {
                 console.log("valid")
+                const newAuth = msmc.getMCLC().getAuth(newProfile)
+                fs.writeFile(process.env.APPDATA + "/warden/auth/auth.json", JSON.stringify(newAuth));
+                fs.writeFile(process.env.APPDATA + "/warden/auth/auth_profile.json", JSON.stringify(newProfile.profile));
                 setupMods();
             }
         }).catch(err => {
@@ -92,8 +95,24 @@ function setupMods() {
         .then((json) => {
             var tables;
             if(source === "official") tables = json.entries[minecraftVersion];
-            if(source === "layout") tables = JSON.parse(fs.readFileSync(process.env.APPDATA + "/warden/layouts/" + layoutName)).mods;
-            console.log(json.entries[minecraftVersion])
+            if(source === "layout") {
+                var o = JSON.parse(fs.readFileSync(process.env.APPDATA + "/warden/layouts/" + layoutName));
+                if(o.includeWardenOptimizations === false) {
+                    tables = o.mods;
+                } else {
+                    //merge the mods
+                    var layoutMods = o.mods;
+                    var officialMods = json.entries[minecraftVersion];
+                    var merge = officialMods.concat(layoutMods);
+                    //make sure theres no duplicates based on mod name using filter
+                    tables = merge.filter((thing, index, self) =>
+                        index === self.findIndex((t) => (
+                            t.id === thing.id
+                        ))
+                    )
+                }
+            }
+            // console.log(json.entries[minecraftVersion])
 
             if(wardenSettingsFile.wardenModConfigVersion !== json.version && source === "official") {
                 console.log("theres been an update to the mod config, deleting all mods")
@@ -111,6 +130,7 @@ function setupMods() {
                         fs.rmSync(process.env.APPDATA + "/warden/minecraft/mods", { recursive: true })
                         fs.mkdirSync(process.env.APPDATA + "/warden/minecraft/mods");
                     }
+                    console.log("User had incorrect amount of mods");
                 } else {
                     console.log("User had correct amount of mods");
                     checkForJava();
@@ -119,6 +139,7 @@ function setupMods() {
 
 
             if(tables) {
+                console.log("tables:  " + tables)
                 //there are mods to download
                 var modsDownloaded = [];
                 tables.forEach(function(table) {

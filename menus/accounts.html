@@ -4,6 +4,7 @@
     <link rel="stylesheet" href="../styles_play.css">
     <link rel="stylesheet" href="../circles_play.css">
     <link rel="stylesheet" href="./profiles.css">
+    <script defer src="./contextMenu.js"></script>
     <script src="../main.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" integrity="sha512-MV7K8+y+gLIBoVD59lQIYicR65iaqukzvf/nwasF0nqhPay5w/9lJmVM2hMDcnK1OnMGCdVK+iQrJ7lzPJQd1w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <meta charset="UTF-8">
@@ -102,8 +103,6 @@ function readTextFile(file, callback) {
       }
       rawFile.send(null);
     }
-
-
 document.addEventListener('DOMContentLoaded',pageLoaded);
 function pageLoaded(){
   readTextFile(process.env.APPDATA + "/warden/auth/auth_profile.json", function(text){
@@ -115,29 +114,18 @@ function pageLoaded(){
     Name.innerHTML = parsed.name;
     UUID.innerHTML = parsed.id;
     console.log(parsed)
-    //ipcRenderer.send('zong', JSON.parse(text);
-  });
+});
 
   console.log("ready")
 }
-
-function showToast(text){
-        var isShowing = false;
-        var x=document.getElementById("toast");
-        if(isShowing == false) {
-          x.classList.add("show");
-          var isShowing = true;
-          x.innerHTML=text;
-          setTimeout(function(){
-            x.classList.remove("show");
-            var isShowing = false;
-        },3000);
-        }
-      }
 </script>
 
 <div class="wui-side-menu open pinned" data-wui-theme="dark">    
   <ul class="wui-side-menu-items">
+    <div style="margin-bottom:35px; color:#fff;">
+      <img id="avatar" src="https://crafatar.com/avatars/" alt="AVATAR" width="25" height="25" style="float:left;position:absolute;top:10px;left:10px;" onerror="if (this.src != 'https://crafatar.com/avatars/853c80ef3c3749fdaa49938b674adae6') this.src = 'https://crafatar.com/avatars/853c80ef3c3749fdaa49938b674adae6';">
+      <h4 id="signedin" style="float:right;position:absolute;top:-7.5px;left:40px;width:130px;overflow:hidden;"></h4>
+    </div>
     <li>
       <a href="../play.html" class="wui-side-menu-item">
         <b><span class="box-title"><i style="margin-right:5px;" class="fa-solid fa-gamepad"></i>Play</span></b>
@@ -159,8 +147,8 @@ function showToast(text){
       </a>
     </li>
     <li>
-      <a id="settingsTab" href="./menus/settings.html?uuid=" class="wui-side-menu-item">
-        <b><span class="box-title"><i style="margin-right:5px;" class="fa-solid fa-gear"></i>Settings</span></b>
+      <a id="settingsTab" href="./menus/settings.html?uuid=" class="wui-side-menu-item settingsBox">
+        <b><span class="box-title settingsBox"><i style="margin-right:5px;" class="fa-solid fa-gear"></i>Settings</span></b>
       </a>
     </li>
     <li>
@@ -177,14 +165,15 @@ function showToast(text){
   <div class="wui-content-main">
     <center>
       <h1>Accounts</h1>
-      <div class="profile">
-        <div class="photo"><img id="MCSkin"/></div>
-        <div class="content22">
+      <div class="profile-container">
+        <div class="profile">
+          <div class="photo"><img id="MCSkin"/></div>
+          <div class="content22">
             <div class="text">
                 <h3 id="MCName"></h3>
                 <h6 id="MCUUID"></h6>
             </div>
-        </div>
+          </div>
         </div>
       </div>
     </center>
@@ -194,17 +183,26 @@ function showToast(text){
 </div>
   </div>
 
+  <div id="contextMenu" class="context-menu" style="display: none"> 
+    <ul class="menu"> 
+        <li class="share">
+          <a href="#" id="wardenFolder">
+            <i class="fa fa-share" aria-hidden="true"></i>
+            Warden Folder
+          </a>
+        </li> 
+    </ul> 
+  </div>
+
 
   <script>
-
-    //get url parameter uuid
-    var urlParams = new URLSearchParams(window.location.search);
-    var uuid = urlParams.get('uuid');
-
-    //get element by id
-    document.getElementById("friendsTab").href = "./friends.html?uuid=" + uuid;
-    document.getElementById("cosmeticsTab").href = "./cosmetics.html?uuid=" + uuid;
-    document.getElementById("settingsTab").href = "./settings.html?uuid=" + uuid;
-
+    const authJSON = fs.readFileSync(process.env.APPDATA + "/warden/auth/auth.json");
+    const parsedAuthJSON = JSON.parse(authJSON);
+    var signedin = document.getElementById("signedin");
+    signedin.innerHTML = parsedAuthJSON.name;
+    document.getElementById("avatar").src = "https://crafatar.com/avatars/" + parsedAuthJSON.uuid;
+    document.getElementById("friendsTab").href = "./friends.html?uuid=" + parsedAuthJSON.uuid;
+    document.getElementById("settingsTab").href = "./settings.html?uuid=" + parsedAuthJSON.uuid;
+    document.getElementById("cosmeticsTab").href = "./cosmetics.html?uuid=" + parsedAuthJSON.uuid;
   </script>
 </html>

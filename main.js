@@ -85,7 +85,7 @@ function handleSquirrelEvent() {
       icon:'./images/icon.png',
       width: 800,
       height: 600,
-      resizable: false,
+      resizable: true,
       autoHideMenuBar: true,
       webPreferences: {
         enableRemoteModule: true,

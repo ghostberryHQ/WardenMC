@@ -90,7 +90,7 @@ h1, h2, h3, h4, button, div {
   left:50%;
   transform:translate(-50%);
   /* background-color:#df4759; */
-  background-color:#42ba96;
+  /* background-color:#42ba96; */
   color:#fff;
   padding:16px;
   border-radius:4px;
@@ -109,4 +109,14 @@ h1, h2, h3, h4, button, div {
 @keyframes fadeInOut{
   5%,95%{opacity:1;top:50px}
   15%,85%{opacity:1;top:30px}
+}
+
+/* //Id #microsoftLoginButtonContainer anchor to bottom and center horizontally*/
+#microsoftLoginButtonContainer {
+  position: absolute;
+  bottom: 30px;
+  left: 50%;
+  width:99%;
+  transform: translate(-50%, -50%);
+  /* border:#fff solid 3px; */
 }

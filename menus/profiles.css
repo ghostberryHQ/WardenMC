@@ -5,12 +5,12 @@ body {
 
 .profile {
   width: 330px;
-  height: 100px;
+  height: 120px;
   position: absolute;
   top: 25%;
   left: 50%;
   transform: translate(-50%, -50%);
-  border-radius: 5px;
+  border-radius: 10px;
   background-color: #3C6E71;
 }
 
@@ -25,7 +25,8 @@ body {
   overflow: hidden;
   border: 5px solid #315a5c;
   background-color: #315a5c;
-  margin-left: -230px;
+  margin-left: -215px;
+  margin-top: 10px;
 }
 
 .profile .photo img {
@@ -39,19 +40,25 @@ body {
   height: 100%;
   top: 0;
   left: 0;
+  margin-top:5px;
 }
 
 .text, h3, h6 {
-    color:#E2E2E2;
+  color:#E2E2E2;
 }
 
 h3 {
-    position: absolute;
-    left: 32%;
-    top:12%;
+  position: absolute;
+  left: 35%;
+  top:12%;
 }
 h6 {
-    position: absolute;
-    left: 32%;
-    top: 30%;
+  position: absolute;
+  left: 35%;
+  top: 30%;
+}
+
+.selectedAccount {
+  border: 4px solid #fff;
+  border-radius: 5px;
 }

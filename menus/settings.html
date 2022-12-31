@@ -4,6 +4,7 @@
     <link rel="stylesheet" href="../styles_play.css">
     <link rel="stylesheet" href="../circles_play.css">
     <script src="../main.js"></script>
+    <script defer src="./contextMenu.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" integrity="sha512-MV7K8+y+gLIBoVD59lQIYicR65iaqukzvf/nwasF0nqhPay5w/9lJmVM2hMDcnK1OnMGCdVK+iQrJ7lzPJQd1w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <meta charset="UTF-8">
     <title>Warden</title>
@@ -155,25 +156,14 @@ function settingsStuffForWarden() {
       fs.writeFileSync(process.env.APPDATA+"/warden/settings.json", JSON.stringify(settings));
     }
 }
-
-
-function showToast(text){
-        var isShowing = false;
-        var x=document.getElementById("toast");
-        if(isShowing == false) {
-          x.classList.add("show");
-          var isShowing = true;
-          x.innerHTML=text;
-          setTimeout(function(){
-            x.classList.remove("show");
-            var isShowing = false;
-        },3000);
-        }
-      }
 </script>
 
 <div class="wui-side-menu open pinned" data-wui-theme="dark">    
   <ul class="wui-side-menu-items">
+    <div style="margin-bottom:35px; color:#fff;">
+      <img id="avatar" src="https://crafatar.com/avatars/" alt="AVATAR" width="25" height="25" style="float:left;position:absolute;top:10px;left:10px;" onerror="if (this.src != 'https://crafatar.com/avatars/853c80ef3c3749fdaa49938b674adae6') this.src = 'https://crafatar.com/avatars/853c80ef3c3749fdaa49938b674adae6';">
+      <h4 id="signedin" style="float:right;position:absolute;top:-7.5px;left:40px;width:130px;overflow:hidden;"></h4>
+    </div>
     <li>
       <a href="../play.html" class="wui-side-menu-item">
         <b><span class="box-title"><i style="margin-right:5px;" class="fa-solid fa-gamepad"></i>Play</span></b>
@@ -195,8 +185,8 @@ function showToast(text){
       </a>
     </li>
     <li>
-      <a href="#" class="wui-side-menu-item active" href="#">
-        <b><span class="box-title"><i style="margin-right:5px;" class="fa-solid fa-gear"></i>Settings</span></b>
+      <a href="#" class="wui-side-menu-item active settingsBox" href="#">
+        <b><span class="box-title settingsBox"><i style="margin-right:5px;" class="fa-solid fa-gear"></i>Settings</span></b>
       </a>
     </li>
     <li>
@@ -240,6 +230,12 @@ function showToast(text){
         <input type="number" min="4" id="maxRamInput" step="1.00">
         <h3 style="font-size: 0.75em; font-weight: bold; opacity:50%;margin-left:135px;margin-top:5px;">(minimum of 4)</h3>
       </div>
+      <!-- //position:absolute centered horizontally at bottom without left:50% -->
+      <div class="ghostBerryLinkingDIV" style="margin-top:15px;position:absolute;bottom:0;left:50%;transform:translate(-50%, -50%);visibility:hidden;">
+        <label style="font-size: 1.17em; font-weight: bold; opacity:50%;" id="ghostBerryLinkingFieldTag" for="ghostBerryLinkingField">GhostBerry Linking: </label>
+        <input type="text" id="ghostBerryLinkingField" maxlength="6" placeholder="GhostBerry Linking Code">
+        <button id="ghostBerryLinkingButton" style="margin-left:5px;">Link</button>
+      </div>
     </center>
     <div id="events"></div>
     <div id="toast"></div>
@@ -247,16 +243,44 @@ function showToast(text){
 </div>
 </div>
 
+<div id="contextMenu" class="context-menu" style="display: none"> 
+  <ul class="menu"> 
+      <li class="share">
+        <a href="#" id="wardenFolder">
+          <i class="fa fa-share" aria-hidden="true"></i>
+          Warden Folder
+        </a>
+      </li> 
+  </ul> 
+</div>
+
 
   <script>
-    //get url parameter uuid
-    var urlParams = new URLSearchParams(window.location.search);
-    var uuid = urlParams.get('uuid');
+
+    //get id ghostBerryLinkingButton
+    var ghostBerryLinkingButton = document.getElementById("ghostBerryLinkingButton");
+    //on click
+    ghostBerryLinkingButton.onclick = function() {
+      //get id ghostBerryLinkingField
+      var ghostBerryLinkingField = document.getElementById("ghostBerryLinkingField");
+      //get value of ghostBerryLinkingField
+      var ghostBerryLinkingFieldValue = ghostBerryLinkingField.value;
+      //if ghostBerryLinkingFieldValue is not empty
+      if (ghostBerryLinkingFieldValue != "" && ghostBerryLinkingFieldValue.length === 6) {
+        showToast("Successfully Linked to GhostBerry Account: Person!")
+      } else {
+        showToast("Please enter a valid GhostBerry Linking Code!", "#df4759")
+      }
+    }
 
 
-    //get element by id
-    document.getElementById("friendsTab").href = "./friends.html?uuid=" + uuid;
-    document.getElementById("accountsTab").href = "./accounts.html?uuid=" + uuid;
-    document.getElementById("cosmeticsTab").href = "./cosmetics.html?uuid=" + uuid;
+    const authJSON = fs.readFileSync(process.env.APPDATA + "/warden/auth/auth.json");
+    const parsedAuthJSON = JSON.parse(authJSON);
+    var signedin = document.getElementById("signedin");
+    signedin.innerHTML = parsedAuthJSON.name;
+    document.getElementById("avatar").src = "https://crafatar.com/avatars/" + parsedAuthJSON.uuid;
+    document.getElementById("friendsTab").href = "./friends.html?uuid=" + parsedAuthJSON.uuid;
+    document.getElementById("accountsTab").href = "./accounts.html?uuid=" + parsedAuthJSON.uuid;
+    document.getElementById("cosmeticsTab").href = "./cosmetics.html?uuid=" + parsedAuthJSON.uuid;
   </script>
 </html>

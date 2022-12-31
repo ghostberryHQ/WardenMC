@@ -52,7 +52,7 @@
   .wui-side-menu a 
    {color:#ccc;text-decoration:none}
   .wui-side-menu .wui-side-menu-item.active
-      {border-left-color: #158439; color:#158439}
+      {border-left-color: #3B8B8A; color:#3B8B8A}
   .wui-content a {color:#000;}
   
   
@@ -84,19 +84,21 @@
     }
 
     .button {
-        flex: 1 1 auto;
-        margin: 10px;
-        padding: 20px;
-        width: 50%;
-        border: 2px solid #f7f7f7;
-        text-align: center;
-        left: 25%;
-        text-transform: uppercase;
-        position: absolute;
-        bottom:0;
-        overflow: hidden;
-        transition: 0.3s;
-      }
+      flex: 1 1 auto;
+      padding: 20px;
+      width: 50%;
+      border: 2px solid #f7f7f7;
+      text-align: center;
+      left: 50%;
+      transform: translate(-50%, -20%);
+      text-transform: uppercase;
+      position: absolute;
+      bottom:0;
+      overflow: hidden;
+      transition: 0.3s;
+    }
+
+
       .button:after {
         position: absolute;
         transition: 0.3s;
@@ -154,13 +156,16 @@
 
 
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap');
+
   .select {
     position: absolute;
-    bottom:0;
-    margin-bottom:80px;
+    left: 50%;
+    transform: translate(-50%);
+    bottom: 0;
+    margin-bottom: 80px;
     text-align: center;
-    left: 35%;
   }
+
   select {
     color: white;
   }
@@ -268,8 +273,97 @@
 }
 
 
-#McProgress {
+/* #McProgress {
   left: 26.9%;
   position:absolute;
   width:50%;
+} */
+
+#McProgress {
+  position: absolute;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 50%;
+}
+
+
+/* #friendsList {
+  position:absolute; bottom:10%; left:15%; background-color:#4c4c4c; border-radius:5%; width:400px; height:400px; opacity: 60%;
+} */
+
+#friendsList {
+  position: absolute;
+  left: 50%;
+  transform: translate(-50%, 0%);
+  width: 70%;
+  height: 80%;
+  background-color: #4c4c4c;
+  border-radius: 15px;
+  opacity: 60%;
+  text-align: center;  
+}
+
+/* #noFriendsMessage {
+  position:absolute; bottom:50%; left:28%; opacity: 60%;
+} */
+
+#noFriendsMessage {
+  position: absolute;
+  left: 50%;
+  transform: translate(-50%, 42.5%);
+  width: 70%;
+  height: 80%;
+  border-radius: 15px;
+  opacity: 60%;
+  text-align: center;  
+}
+
+
+
+
+#progressInfoP {
+  position: absolute;
+  bottom:0;
+  transform: translate(4%, 20%);
+  width: 128px;
+  height: fit-content;
+  opacity: 60%;
+  visibility: hidden;
+}
+
+ul {
+  list-style: none;
+}
+.context-menu { 
+  position: absolute; 
+} 
+.menu {
+  display: flex;
+  flex-direction: column;
+  background-color: #191919;
+  border-radius: 10px;
+  box-shadow: 0 10px 20px rgb(64 64 64 / 5%);
+  padding: 10px 0;
+}
+.menu > li > a {
+  font: inherit;
+  border: 0;
+  padding: 10px 30px 10px 15px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  position: relative;
+  text-decoration: unset;
+  color: #fff;
+  font-weight: 500;
+}
+.menu > li > a:hover {
+  background:#1f1f1f;
+  color: #158439;
+}
+.menu > li > a > i {
+  padding-right: 10px;
+}
+.menu > li.trash > a:hover {
+  color: red;
 }

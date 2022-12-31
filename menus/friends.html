@@ -4,6 +4,7 @@
     <link rel="stylesheet" href="../styles_play.css">
     <link rel="stylesheet" href="../circles_play.css">
     <script src="../main.js"></script>
+    <script defer src="./contextMenu.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" integrity="sha512-MV7K8+y+gLIBoVD59lQIYicR65iaqukzvf/nwasF0nqhPay5w/9lJmVM2hMDcnK1OnMGCdVK+iQrJ7lzPJQd1w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <meta charset="UTF-8">
     <title>Warden</title>
@@ -111,27 +112,11 @@ documentReady(function() {
   }, false);
 });
 
-function showToast(text){
-        var isShowing = false;
-        var x=document.getElementById("toast");
-        if(isShowing == false) {
-          x.classList.add("show");
-          var isShowing = true;
-          x.innerHTML=text;
-          setTimeout(function(){
-            x.classList.remove("show");
-            var isShowing = false;
-        },3000);
-        }
-      }
-
 window.onload = () => {
     //get url perameters
     var urlParams = new URLSearchParams(window.location.search);
     var username = urlParams.get('uuid');
 
-
-    console.log(username);
     fetch (`https://api.persn.dev/warden/getFriends/${username}`)
     .then(response => response.json())
     .then(data => {
@@ -145,14 +130,18 @@ window.onload = () => {
           friendList.innerHTML = "You have no friends";
         } else {
           for (var i = 0; i < friends.length; i++) {
-            var friendElement = document.createElement("li");
-            friendElement.className = "friend";
+            var friendshipstatus = friends[i].status;
+            // console.log(friends[i].status)
             fetch("https://api.mojang.com/user/profile/" + friends[i].uuid)
             .then(response => response.json())
             .then(data => {
-              friendElement.innerHTML = data.name;
-            });
-            friendList.appendChild(friendElement);
+              console.log(friendshipstatus)
+              var friendElement = document.createElement("li");
+              friendElement.innerHTML = `${data.name}`;
+              friendElement.classList.add("friend");
+              // if(friendshipstatus == "pending") friendElement.innerHTML += " <span style='color:yellow;'>(Pending)</span>";
+              friendList.appendChild(friendElement);
+            })
           }
         }
       }
@@ -162,6 +151,10 @@ window.onload = () => {
 
 <div class="wui-side-menu open pinned" data-wui-theme="dark">    
   <ul class="wui-side-menu-items">
+    <div style="margin-bottom:35px; color:#fff;">
+      <img id="avatar" src="https://crafatar.com/avatars/" alt="AVATAR" width="25" height="25" style="float:left;position:absolute;top:10px;left:10px;" onerror="if (this.src != 'https://crafatar.com/avatars/853c80ef3c3749fdaa49938b674adae6') this.src = 'https://crafatar.com/avatars/853c80ef3c3749fdaa49938b674adae6';">
+      <h4 id="signedin" style="float:right;position:absolute;top:-7.5px;left:40px;width:130px;overflow:hidden;"></h4>
+    </div>
     <li>
       <a href="../play.html" class="wui-side-menu-item">
         <b><span class="box-title"><i style="margin-right:5px;" class="fa-solid fa-gamepad"></i>Play</span></b>
@@ -183,8 +176,8 @@ window.onload = () => {
       </a>
     </li>
     <li>
-      <a id="settingsTab" href="./menus/settings.html?uuid=" class="wui-side-menu-item">
-        <b><span class="box-title"><i style="margin-right:5px;" class="fa-solid fa-gear"></i>Settings</span></b>
+      <a id="settingsTab" href="./menus/settings.html?uuid=" class="wui-side-menu-item settingsBox">
+        <b><span class="box-title settingsBox"><i style="margin-right:5px;" class="fa-solid fa-gear"></i>Settings</span></b>
       </a>
     </li>
     <li>
@@ -230,9 +223,9 @@ window.onload = () => {
       </style>
       <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
       <h1>Friends</h1>
-      <h3 id="noFriendsMessage" style="position:absolute; bottom:50%; left:28%; opacity: 60%;">You currently have no friends</h3>
+      <h3 id="noFriendsMessage">You currently have no friends</h3>
       
-      <div id="friendsList" style="position:absolute; bottom:10%; left:15%; background-color:#4c4c4c; border-radius:5%; width:400px; height:400px; opacity: 60%;">
+      <div id="friendsList">
         <br>
         <!-- <li class="friend">MrMrGamer <button class="inviteButton">Invite</button></li>
         <li class="friend">ThisIsntAFakePerson <button class="inviteButton">Invite</button></li> -->
@@ -244,14 +237,28 @@ window.onload = () => {
     <div id="toast"></div>
   </div>
 </div>
-  </div>
+</div>
+
+<div id="contextMenu" class="context-menu" style="display: none"> 
+  <ul class="menu"> 
+      <li class="share">
+        <a href="#" id="wardenFolder">
+          <i class="fa fa-share" aria-hidden="true"></i>
+          Warden Folder
+        </a>
+      </li> 
+  </ul> 
+</div>
 
 
   <script>
-    var urlParams = new URLSearchParams(window.location.search);
-    var uuid = urlParams.get('uuid');
-    document.getElementById("accountsTab").href = "./accounts.html?uuid=" + uuid;
-    document.getElementById("cosmeticsTab").href = "./cosmetics.html?uuid=" + uuid;
-    document.getElementById("settingsTab").href = "./settings.html?uuid=" + uuid;
+    const authJSON = fs.readFileSync(process.env.APPDATA + "/warden/auth/auth.json");
+    const parsedAuthJSON = JSON.parse(authJSON);
+    var signedin = document.getElementById("signedin");
+    signedin.innerHTML = parsedAuthJSON.name;
+    document.getElementById("avatar").src = "https://crafatar.com/avatars/" + parsedAuthJSON.uuid;
+    document.getElementById("settingsTab").href = "./settings.html?uuid=" + parsedAuthJSON.uuid;
+    document.getElementById("accountsTab").href = "./accounts.html?uuid=" + parsedAuthJSON.uuid;
+    document.getElementById("cosmeticsTab").href = "./cosmetics.html?uuid=" + parsedAuthJSON.uuid;
   </script>
 </html>
