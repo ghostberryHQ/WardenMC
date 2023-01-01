@@ -1,11 +1,23 @@
-const {app, ipcMain, BrowserWindow} = require('electron');
+const {app, ipcMain, BrowserWindow, dialog} = require('electron');
 const { Authenticator } = require('minecraft-launcher-core');
 const rpc = require("discord-rpc");
 const fs = require("fs");
 const childProcess = require('child_process');
-const path = require('path');
+const path = require('path')
 const config = require('./config.json');
 const client = new rpc.Client({ transport: 'ipc' });
+const fetch = require('node-fetch');
+
+let win;
+let isUserLoggedIn;
+
+if (process.defaultApp) {
+  if (process.argv.length >= 2) {
+    app.setAsDefaultProtocolClient('deep-dark', process.execPath, [path.resolve(process.argv[1])])
+  }
+} else {
+  app.setAsDefaultProtocolClient('deep-dark')
+}
 
 if(fs.existsSync(process.env.APPDATA + "/warden/settings.json")) {
   const data = JSON.parse(fs.readFileSync(process.env.APPDATA + "/warden/settings.json"));
@@ -81,7 +93,7 @@ function handleSquirrelEvent() {
 };
 
   function createWindow () {
-    const win = new BrowserWindow({
+    win = new BrowserWindow({
       icon:'./images/icon.png',
       width: 800,
       height: 600,
@@ -96,31 +108,84 @@ function handleSquirrelEvent() {
     })
     if (fs.existsSync(process.env.APPDATA + "/warden/auth/auth.json") && fs.existsSync(process.env.APPDATA + "/warden/auth/auth_profile.json")) {
       win.loadFile('play.html')
+      isUserLoggedIn = true;
     } else {
       win.loadFile('index.html')
+      isUserLoggedIn = false;
     }
     process.env.MAIN_WINDOW_ID = win.id;
+    if (process.platform == 'win32') {
+      // Keep only command line / deep linked arguments
+      deeplinkingUrl = process.argv
+      // console.log(deeplinkingUrl)
+    }
   }
-  
-  app.whenReady().then(() => {
-    createWindow()
-  
-    app.on('activate', () => {
-      if (BrowserWindow.getAllWindows().length === 0) {
-        createWindow();
+  const gotTheLock = app.requestSingleInstanceLock()
+
+  if (!gotTheLock) {
+    app.quit()
+  } else {
+
+    app.on('second-instance', (e, argv) => {
+      // Someone tried to run a second instance, we should focus our window.
+      if (win) {
+        if (win.isMinimized()) win.restore()
+        win.focus()
+      }
+      if (process.platform == 'win32') {
+        // Keep only command line / deep linked arguments
+        deeplinkingUrl = argv.slice(1)[1]
+        console.log(deeplinkingUrl)
+        if(isUserLoggedIn === true && deeplinkingUrl.includes("deep-dark://gblink")) {
+          // imagine url was deep-dark://gblink/939202 get code from url and assign it to variable
+          var code = deeplinkingUrl.split("/")[3]
+          //fetch GET request https://api.persn.dev/warden/verify/code. and recieve JSON
+          var uuid = JSON.parse(fs.readFileSync(process.env.APPDATA + "/warden/auth/auth_profile.json")).id
+          fetch(`https://api.persn.dev/warden/verify/${code}/${uuid}`)
+          .then(res => res.json())
+          .then((out) => {
+            if(out.status === "success") {
+              // dialog.showErrorBox('Linking Successful', `You have successfully linked to Ghost ID: ${out.ghostID}`)
+              dialog.showMessageBox({
+                type: "info",
+                title: "Linking Successful",
+                message: `You have successfully linked to Ghost ID: ${out.ghostID}`,
+                buttons: ["OK"]
+              })
+            } else{
+              //alert dialog
+              dialog.showErrorBox('Linking Error', `It seems like the code you entered is invalid. Please try again.\n\nError: ${out.status}`)
+            }
+          });
+          
+        }
       }
     })
-  })
+
+    app.whenReady().then(() => {
+      createWindow()
+    
+      app.on('activate', () => {
+        if (BrowserWindow.getAllWindows().length === 0) {
+          createWindow();
+        }
+      })
+    })
+
+  
+    app.on('open-url', (event, url) => {
+      console.log(url)
+    })
+  
+  }
 
   app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') {
       app.quit()
     }
   })
-
 //StartGame
 ipcMain.on('startGame', (event, arg) => {
-
   if(!fs.existsSync(process.env.APPDATA + "/warden/auth/auth.json") && !fs.existsSync(process.env.APPDATA + "/warden/auth/auth_profile.json")) {
     app.quit();
   }
